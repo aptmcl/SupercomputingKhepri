@@ -1,6 +1,7 @@
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataArrays = "0fe7c1db-08c2-54a3-a222-6d1d3b7a471a"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 Franklin = "713c75ef-9fc9-4b05-94a9-213340da978e"
 ImageIO = "82e4d734-157c-48bb-816b-45c225c6df19"
