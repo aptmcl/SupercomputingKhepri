@@ -1,0 +1,44 @@
+Workers:1
+real	2m54.818s
+user	2m53.708s
+sys	0m0.337s
+
+Workers:3
+real	1m57.889s
+user	2m58.933s
+sys	0m1.002s
+
+Workers:7
+real	1m41.636s
+user	3m8.240s
+sys	0m3.010s
+
+Workers:15
+real	1m36.311s
+user	3m28.148s
+sys	0m5.207s
+
+Workers:31
+real	1m35.354s
+user	3m51.181s
+sys	0m10.263s
+
+Workers:47
+real	1m36.136s
+user	4m28.485s
+sys	0m22.133s
+
+Workers:63
+real	1m35.539s
+user	4m58.236s
+sys	0m31.658s
+
+Workers:79
+real	1m36.951s
+user	5m40.938s
+sys	0m43.576s
+
+Workers:95
+real	1m38.881s
+user	6m29.530s
+sys	0m58.192s
