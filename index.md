@@ -1,9 +1,7 @@
 @def title = "Architecture in the Supercomputing Era"
 @def tags = ["syntax", "code"]
-@def reeval = true
 
 ```julia:setup
-#hideall
 using DataFrames
 using CSV
 using Plots

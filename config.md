@@ -6,8 +6,10 @@ The website_* must be defined for the RSS to work
 @def website_title = "Super-Computing for Architecture"
 @def website_descr = "Experiments on the use of super-computing in Architecture"
 @def website_url   = "https://algorithmicdesign.github.io/"
-
+@def prepath = "SupercomputingKhepri"
 @def author = "António Menezes Leitão"
+
+@def reeval = true
 
 @def mintoclevel = 2
 @def hascode = true
