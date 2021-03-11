@@ -2,6 +2,7 @@
 @def tags = ["syntax", "code"]
 
 ```julia:setup
+#hideall
 using DataFrames
 using CSV
 using Plots
