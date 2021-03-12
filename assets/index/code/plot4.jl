@@ -24,4 +24,4 @@ plot(time_aprox_pi_multiple[:,1],
      #color=:green,
      #xscale=:log10,
      ylabel="Time (s)")
-saveplot(plt,"userTimeParallelPi") # hide
+saveplot(plt,"userTimeParallelPi")

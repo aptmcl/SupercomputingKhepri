@@ -3,6 +3,7 @@
 using DataFrames
 using CSV
 using Plots
+using StatsPlots
 
 plotlyjs(size=(640,330))
 
