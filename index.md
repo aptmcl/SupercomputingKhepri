@@ -6,6 +6,7 @@
 using DataFrames
 using CSV
 using Plots
+using StatsPlots
 
 plotlyjs(size=(640,330))
 
@@ -210,8 +211,7 @@ machines and only move the resulting binaries to the supercomputer.
 In the begining we were doing this using a Ubuntu installation running
 on Windows Subsystem for Linux (WSL), which we expect would be very
 similar to CentOS.  However, we quickly discovered that there were
-errors related to differences in the libraries of Ubuntu and CentOS
-7. To avoid being forced to recompile the software, we initially
+errors related to differences in the libraries of Ubuntu and CentOS 7. To avoid being forced to recompile the software, we initially
 attempted to solve these dependency errors but soon realized that it
 would not end up well.
 
@@ -418,7 +418,7 @@ call.
     abs(4*count/n - pi)
   end
 
-# Compilation:
+# Force compilation:
 @everywhere approx_pi(100)
 ```
 
@@ -433,7 +433,7 @@ then computing the `mean` of the results that came from the workers.
 ```julia
 p_approx_pi(n) =
   mean(pmap(n->approx_pi(n),
-       [n/nworkers() for i in 1:nworkers()]))
+            [n/nworkers() for i in 1:nworkers()]))
 ```
 
 To evaluate the effectiveness of this strategy, we experimented a
@@ -640,7 +640,7 @@ plot(time_aprox_pi_multiple[:,1],
      #color=:green,
      #xscale=:log10,
      ylabel="Time (s)")
-saveplot(plt,"userTimeParallelPi") # hide
+saveplot(plt,"userTimeParallelPi")
 ```
 \textoutput{plot4}
 
@@ -648,5 +648,499 @@ Now, we see that despite the considerable gains obtained, almost
 halving the time needed, it only pays off to use up to 16
 processes. Our guess for the lack of speedup after 16 processes is
 that the time spent starting processes and managing them nullifies the
-gains of the parallelization.  In order to improve these results, it
-might be necessary to use a different process topology.
+gains of the parallelization. Another hypothesis is that, despite the number of workers created, Julia is not taking advantage of them because it does not fairly distribute the work among them. To refute (or confirm) this hypothesis, we decide to make a different test.
+
+The goal, now, is to distribute identical work units among the workers and collect the number of units that were processed by each worker. To that end, we used the following program:
+
+```julia
+using Distributed
+addprocs(parse(Int, ARGS[1])-1)
+
+@everywhere work(x) = (sleep(0.01); myid())
+res = @time pmap(work, 1:2000)
+```
+
+Note that the work unit of each process is just a quick `sleep`. Each process then returns its own _id_. The master, besides repeatedly sending elements of the range `1:2000` to the available workers, collects the results. This means that the range ends up being converted into an array of process _id_s, where each _id_ represents the process that handled that work unit.
+
+After the range is exhausted, the array of _id_s is processed to count the number of times each _id_ shows up. If the distribution is fair, all processes will have more or less the same number of occurrences in the array, meaning that all of them had to process a similar number of work units.
+
+```julia
+distr = Dict([i=>0 for i in workers()])
+for i in res
+ distr[i]+=1
+end
+```
+
+Finally, for each process _id_ we print the number of times it occurred in the array, i.e., the number of work units that it had to process.
+
+```julia
+for i in workers()
+  println("$(i)=>$(distr[i])")
+end
+```
+
+In the following bar graph, we plot that number for each process, whose _id_ is presented on the horizontal axis.
+
+```julia:plot5
+#hideall
+work_per_id = [bench_data("""
+Id Units
+2 23
+3 23
+4 22
+5 22
+6 21
+7 21
+8 21
+9 21
+10 21
+11 21
+12 21
+13 21
+14 21
+15 22
+16 22
+17 21
+18 21
+19 21
+20 21
+21 22
+22 21
+23 22
+24 21
+25 21
+26 20
+27 21
+28 20
+29 21
+30 21
+31 20
+32 21
+33 21
+34 20
+35 20
+36 21
+37 20
+38 20
+39 20
+40 21
+41 22
+42 21
+43 21
+44 21
+45 21
+46 20
+47 20
+48 21
+49 20
+50 22
+51 22
+52 21
+53 21
+54 20
+55 20
+56 21
+57 21
+58 21
+59 22
+60 20
+61 21
+62 20
+63 21
+64 22
+65 22
+66 21
+67 20
+68 22
+69 21
+70 22
+71 22
+72 22
+73 22
+74 21
+75 20
+76 22
+77 21
+78 22
+79 21
+80 21
+81 20
+82 22
+83 21
+84 22
+85 22
+86 22
+87 20
+88 22
+89 20
+90 20
+91 21
+92 22
+93 20
+94 21
+95 20
+96 20
+"""), bench_data("""
+Id Units
+2 27
+3 27
+4 25
+5 25
+6 25
+7 25
+8 25
+9 26
+10 25
+11 25
+12 25
+13 26
+14 26
+15 26
+16 26
+17 25
+18 26
+19 25
+20 26
+21 25
+22 26
+23 25
+24 25
+25 25
+26 25
+27 25
+28 25
+29 25
+30 25
+31 25
+32 25
+33 25
+34 25
+35 25
+36 25
+37 25
+38 25
+39 24
+40 25
+41 25
+42 25
+43 25
+44 26
+45 25
+46 25
+47 25
+48 25
+49 25
+50 26
+51 25
+52 26
+53 26
+54 26
+55 25
+56 25
+57 25
+58 25
+59 25
+60 26
+61 25
+62 25
+63 25
+64 26
+65 24
+66 26
+67 25
+68 25
+69 26
+70 25
+71 25
+72 26
+73 24
+74 26
+75 26
+76 26
+77 25
+78 26
+79 26
+80 26
+"""), bench_data("""
+Id Units
+2 34
+3 33
+4 31
+5 32
+6 32
+7 31
+8 31
+9 32
+10 32
+11 33
+12 32
+13 33
+14 32
+15 31
+16 33
+17 31
+18 31
+19 33
+20 33
+21 32
+22 31
+23 31
+24 32
+25 31
+26 32
+27 32
+28 31
+29 33
+30 33
+31 33
+32 32
+33 33
+34 31
+35 31
+36 31
+37 32
+38 32
+39 32
+40 31
+41 31
+42 32
+43 31
+44 30
+45 31
+46 32
+47 33
+48 30
+49 31
+50 31
+51 30
+52 32
+53 31
+54 32
+55 33
+56 32
+57 31
+58 32
+59 32
+60 31
+61 31
+62 32
+63 32
+64 31
+"""), bench_data("""
+Id Units
+2 46
+3 45
+4 43
+5 43
+6 43
+7 42
+8 42
+9 44
+10 42
+11 42
+12 44
+13 42
+14 42
+15 42
+16 42
+17 42
+18 42
+19 42
+20 43
+21 42
+22 43
+23 42
+24 42
+25 42
+26 42
+27 43
+28 43
+29 42
+30 42
+31 43
+32 42
+33 42
+34 43
+35 43
+36 42
+37 43
+38 42
+39 44
+40 42
+41 42
+42 42
+43 42
+44 43
+45 43
+46 42
+47 42
+48 42
+"""), bench_data("""
+Id Units
+2 67
+3 66
+4 64
+5 66
+6 65
+7 64
+8 64
+9 64
+10 64
+11 64
+12 65
+13 64
+14 66
+15 64
+16 64
+17 65
+18 65
+19 65
+20 64
+21 64
+22 65
+23 64
+24 65
+25 64
+26 64
+27 64
+28 64
+29 64
+30 64
+31 64
+32 64
+"""), bench_data("""
+Id Units
+2 135
+3 134
+4 133
+5 134
+6 133
+7 133
+8 133
+9 132
+10 133
+11 133
+12 132
+13 134
+14 134
+15 134
+16 133
+"""), bench_data("""
+Id Units
+2 288
+3 288
+4 284
+5 285
+6 286
+7 286
+8 283
+"""), bench_data("""
+Id Units
+2 669
+3 666
+4 665
+"""), bench_data("""
+Id Units
+2 2000
+""")]
+plt=
+plot(
+  work_per_id[1][:,1],
+  work_per_id[1][:,2],
+  xlimits=(2,96),
+  #xticks=work_per_id[1][:,1],
+  seriestype = :bar,
+  legend=:none,
+  xlabel="Process Id",
+  ylabel="Work Units")
+saveplot(plt,"workPerId96")
+```
+\textoutput{plot5}
+
+Note the fairly regular number of units of work that is done by each worker. Similar plots could be made for other numbers of processes. The next one shows the same statistics but using only 32 processors:
+
+```julia:plot6
+#hideall
+plt=
+plot(
+  work_per_id[5][:,1],
+  work_per_id[5][:,2],
+  xlimits=(2,32),
+  #xticks=work_per_id[5][:,1],
+  seriestype = :bar,
+  legend=:none,
+  xlabel="Process Id",
+  ylabel="Work Units")
+saveplot(plt,"workPerId32")
+```
+\textoutput{plot6}
+
+Again, we see a relatively fair distribution of work. The same behavior is seen in the following case, using just four processes:
+
+```julia:plot6a
+#hideall
+plt=
+plot(
+  work_per_id[8][:,1],
+  work_per_id[8][:,2],
+  #xlimits=(2,4),
+  xticks=[2,3,4], #work_per_id[8][:,1],
+  seriestype = :bar,
+  legend=:none,
+  xlabel="Process Id",
+  ylabel="Work Units")
+saveplot(plt,"workPerId8")
+```
+\textoutput{plot6a}
+
+
+
+The following bar graph condenses the entire information in a single plot that shows the division of labor for different numbers of workers. As before, remember that the number of workers is one less than the number of processes. That means that, e.g., for 2 processes, there is just one worker doing all the heavy lifting.
+
+```julia:plot7
+#hideall
+resize(v, n) = vcat(v, zeros(Int, n - length(v)))
+plt=
+groupedbar(
+  string.([2, 4, 8, 16, 32, 48, 64, 80, 96]),
+  hcat(map(w->resize(collect(w[:,2]), 95), reverse(work_per_id))...)',
+  bar_position=:stack,
+  #size=(700,1000),
+  legend=:none,
+  #xlabels=,
+  xlabel="# Processes",
+  ylabel="Work Units"
+  )
+saveplot(plt,"workPerId")
+```
+\textoutput{plot7}
+
+As is visible, the work was uniformly distributed among the workers, independently of the number of workers being used. The following bar graph reveals another interesting statistic that confirms our previous hypothesis regarding the time spent managing the workers _vs_ the time doing actual work. Here we measured the time needed to launch the workers (the `addprocs` operation) and the total time needed to process all work items.
+
+```julia:plot8
+#hideall
+work_per_id_bench = bench_data("""
+Processes StartTime(s) StartAllocs(k) StartMemory(MiB) RunTime(s) RunAllocs(k) RunMemory(MiB)
+2 1.417592 15.86 1.254 22.503356 247.07 10.499
+4 1.560481 16.83 1.934 7.585491 248.19 10.535
+8 1.286162 18.89 3.299 3.352620 248.10 10.542
+16 1.751758 23.82 6.057 1.658032 248.08 10.542
+32 1.748663 34.40 11.593 0.902268 248.66 10.565
+48 1.925062 48.28 17.249 0.666988 248.76 10.544
+64 1.915959 63.91 22.913 0.551525 250.47 10.617
+80 1.942948 82.16 28.707 0.464072 250.09 10.610
+96 2.129396 103.51 34.561 0.421452 251.00 10.647
+""")
+plt=
+groupedbar(
+  string.([2, 4, 8, 16, 32, 48, 64, 80, 96]),
+  hcat(map(row->[row[5], row[2]], eachrow(work_per_id_bench))...)',
+  bar_position=:stack,
+  label=["Work time" "Launch time"],
+  xlabel="# Processes",
+  ylabel="Time(s)")
+  saveplot(plt,"workPerId")
+```
+\textoutput{plot8}
+
+Despite the enormous reduction in the time spent doing actual work (that goes from 22.5 seconds using just one worker to 0.42 seconds using 96 workers, i.e., $\frac{1}{54}$ of the original time), we can see that there are no real benefits when we use more than 32 processes and the situation gets actually worse with 96 processes, as the time to launch all of them already dominates the entire computation.
