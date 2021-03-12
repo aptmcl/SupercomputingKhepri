@@ -20,4 +20,4 @@ groupedbar(
   label=["Work time" "Launch time"],
   xlabel="# Processes",
   ylabel="Time(s)")
-  saveplot(plt,"workPerId")
+saveplot(plt,"workPerId")
