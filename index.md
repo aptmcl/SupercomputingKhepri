@@ -1139,8 +1139,31 @@ groupedbar(
   label=["Work time" "Launch time"],
   xlabel="# Processes",
   ylabel="Time(s)")
-  saveplot(plt,"workPerId")
+saveplot(plt,"workPerId")
 ```
 \textoutput{plot8}
 
-Despite the enormous reduction in the time spent doing actual work (that goes from 22.5 seconds using just one worker to 0.42 seconds using 96 workers, i.e., $\frac{1}{54}$ of the original time), we can see that there are no real benefits when we use more than 32 processes and the situation gets actually worse with 96 processes, as the time to launch all of them already dominates the entire computation.
+Despite the enormous reduction in the time spent doing actual work (that goes from 22.5 seconds using just one worker to 0.42 seconds using 96 workers, i.e., $\frac{1}{54}$ of the original time), we can see that the actual benefits become marginal when we use more than 32 processes and the situation gets actually worse with 96 processes, as the time to launch all of them dominates the entire computation. With that number of processors, the total time goes from 23.9 seconds to 2.55, i.e., $\frac{1}{10}$ of the original total time. The following plot illustrates the difference between the speedups considering only the time when the workers are doing useful work and the corresponding speedups when we consider the total time.
+
+
+```julia:plot9
+#hideall
+speedups_work_time = map(row->(work_per_id_bench[1,5])/(row[5]), eachrow(work_per_id_bench))
+speedups_total_time = map(row->(work_per_id_bench[1,2]+work_per_id_bench[1,5])/(row[2]+row[5]), eachrow(work_per_id_bench))
+
+plt=
+plot(
+  string.([2, 4, 8, 16, 32, 48, 64, 80, 96]),
+  [speedups_work_time speedups_total_time],
+  label=["Working Time" "Total Time"],
+  legend=:topleft,
+  xlabel="# Processes",
+  ylabel="Speedup")
+saveplot(plt,"speedUpWorkers")
+```
+\textoutput{plot9}
+
+
+## Optimization
+
+The next set of experiments measured the potential gains that parallelization could provide to optimization problems. To focus on the optimization itself, we used an objective function that was not parallelized. More specifically, the case study was the optimization of the structural properties of a truss, measured by the maximum displacement of all its nodes.  To make things more interesting, the truss had some randomness, namely, in the location of its supports and in the location of its center.
