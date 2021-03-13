@@ -53,7 +53,7 @@ power occurred in the last decades. First, by increasing the number of
 instructions a processors could execute in a given amount of time and,
 then, by increasing the number of processors. The software that
 nowadays runs on a mobile phone, decades ago required large rooms full
-of harware with huge energy demands.
+of hardware with huge energy demands.
 
 This shows that we should not take the currently available
 computational power as the norm but only as another data point in the
@@ -68,7 +68,7 @@ FCT Call on Advanced Computing Projects, which gave us the opportunity
 to use the High-Performance Computing (HPC) capability provided by one
 of Portugal's supercomputing centers.  Our goal was to look at some of
 our previous and current research, from which we already had data
-regarding their computational demands, and reexecute the associated
+regarding their computational demands, and re-execute the associated
 programs in a supercomputer, to assess the effective gains.  It was
 also important for us to evaluate the experience of using a
 supercomputer, as these tend to run operating systems with very
@@ -107,14 +107,14 @@ simultaneous threads of execution, using 2 TB of memory, although
 these would be constrained by the supercomputer topology and the
 available resources at each moment.  In any case, this represents a
 significant amount of computing power when compared with current
-comodity hardware that, typicaly, can simultaneously execute only 8
+commodity hardware that, typically, can simultaneously execute only 8
 threads of execution using 16 GB of RAM.
 
 It is also important to mention that users to not have direct access
 to the computing nodes. Instead, they have to use a front-end machine
 with an Intel Xeon CPU L5420 running at 2.5GHz with 32 GB of RAM.
 
-### The Supercomputing Sofware
+### The Supercomputing Software
 
 Despite the large differences between the hardware of the Cirrus
 supercomputer and that of a typical laptop, the differences in
@@ -124,10 +124,31 @@ very different from the most popular ones, such as Microsoft's Windows
 or Apple's MacOS. Second, because it mostly operates in _batch mode_,
 meaning that _scripts_ must be submitted describing the intended
 executions and the resources needed, and there is no immediate
-feedback, for example, to report errors in the code.  Fourth, the
+feedback, for example, to report errors in the code.  Third, the
 _batch mode_ also implies that it only supports programs that do not
 require interacting with the user and, therefore, do not use a
 graphical user interface.
+
+This mode of operation is supported by Slurm's job scheduling system.  Slurm is an open source cluster management system that is very popular. This helps significantly, as there is a ton of information available about Slurm.
+
+Creating the Slurm _script_ is easy. For our experiments, we used the following template:
+
+```
+#!/bin/bash
+
+#SBATCH --job-name=<the job name>
+#SBATCH --time=<the time limit>
+#SBATCH --nodes=<number of nodes>
+#SBATCH --ntasks=<number of tasks>
+#SBATCH -p <my partition identifier>
+#SBATCH -q <my qos identifier>
+
+<do something, maybe using some environment variables, such as $SLURM_CPUS_ON_NODE>
+```
+
+Note that anything that starts with `#SBATCH` is treated as relevant information for Slurm. Note also that this information does not affect the script because a line that starts with `#` is treated as a comment by `bash`. In this particular script we specified just some of the job's parameters but there are many other options that can be provided.
+
+
 
 ### The Plan
 
@@ -159,7 +180,7 @@ However, given the fact that some of Khepri's backends only work in
 Windows, we had to select only those that we knew, in advance, that we
 could have running in Linux.
 
-To this end, the plan required the following instalation steps:
+To this end, the plan required the following installation steps:
 
 1. Install the Julia language
 1. Install the KhepriBase package
@@ -174,16 +195,16 @@ programs was far from trivial.
 
 A major difficulty for accomplishing the plan is the lack of
 administrative privileges, as it prevents the system-wide installation
-of much needed libraries or software tools. Altough entirely
+of much needed libraries or software tools. Although entirely
 understandable due to the shared nature of the system, lacking these
-priviliges makes it mandatory to use local installations.
+privileges makes it mandatory to use local installations.
 Fortunately, some of the critical software that we planned to use,
 such as the Julia programming language, can be installed locally.
 
 Initially, we tried to use the release candidate version of Julia
 version 1.6 because it promised to solve a pre-compilation problem
 that occurred when multiple simultaneous Julia processes attempted to
-pre-compile the software, triggering conflits in the saving of the
+pre-compile the software, triggering conflicts in the saving of the
 compiled code to disk.  However, this version caused problems related
 to the foreign function interface that was critical for calling our
 own DLL implementation of the structural analysis package Frame3DD.
@@ -208,7 +229,7 @@ after being recompiled for CentOS 7.  Given the difficulty of using
 the frontend for anything more complex than just editing files or
 submitting jobs, we decided to recompile the software on our own
 machines and only move the resulting binaries to the supercomputer.
-In the begining we were doing this using a Ubuntu installation running
+In the beginning we were doing this using a Ubuntu installation running
 on Windows Subsystem for Linux (WSL), which we expect would be very
 similar to CentOS.  However, we quickly discovered that there were
 errors related to differences in the libraries of Ubuntu and CentOS 7. To avoid being forced to recompile the software, we initially
@@ -222,7 +243,7 @@ successfully testing them on our own virtual machine, to move it to
 the supercomputer.  At that moment, however, we discovered that
 despite running the exact same operating system, executing some of the
 recompiled programs in the frontend computer triggered an `Illegal
-instruction` error. After much unsuccessful debuging, we discovered
+instruction` error. After much unsuccessful debugging, we discovered
 that these errors did not occur when the programs were executed in the
 computing nodes.
 
@@ -261,7 +282,7 @@ on the worker processes.
 The first tests attempted to determine how the Julia language
 implementation scales across multiple cores. The following Julia
 program computes an approximation of $\pi$ using the classical Monte
-Carlo approach of sampling points on a square that circunscribes a
+Carlo approach of sampling points on a square that circumscribes a
 circle of radius $r$. In that case, the area of the circle is $\pi r²$
 while the area of the square is $(2r)²=4r²$. The ratio between these
 areas is $\frac{\pi r²}{4r²}=\frac{\pi}{4}$, which means that,
@@ -299,6 +320,23 @@ for i in 1:10
 end
 ```
 
+In order to run the code, we saved all of it in a file `ApproxPi.jl`
+and we created a Slurm _batch_ file named `BatchPi.sh`, containing
+the following:
+
+```bash
+#!/bin/bash
+
+#SBATCH --job-name=SeqPi
+#SBATCH --time=2:00:00
+#SBATCH --nodes=1
+#SBATCH -p ...
+#SBATCH -q ...
+
+time ./julia ApproxPi.jl
+```
+
+To launch the Slurm batch file, we just need to use `sbatch BatchPi.sh`.
 The benchmark results are the following:
 
 ```julia:plot1
@@ -336,7 +374,27 @@ scale is logarithmic and, thus, the computation time grows linearly
 with the number of iterations.
 
 The next step is to repeat the same computation but using parallel
-processing. The next fragment of code demonstrate the creation of workers. We take
+processing.  To that end, we decided to use a slightly different
+`BatchPi.sh` Slurm batch file:
+
+```bash
+#!/bin/bash
+
+#SBATCH --job-name=ParPi
+#SBATCH --time=2:00:00
+#SBATCH --nodes=1
+#SBATCH -p ...
+#SBATCH -q ...
+
+time ./julia ApproxPi.jl $SLURM_NTASKS
+```
+
+Note that we provided the Julia program the number of tasks that it can
+use, although we did not specify that number in the Slurm script. We did
+it like this simply because it was easier to provide that information on the
+`sbatch` call using, e.g., `sbatch --ntasks=8 BatchPi.sh`
+
+The next fragment of code demonstrate the creation of workers. We take
 the number of processes $n$ that was passed as a command-line argument
 and we create $n-1$ additional workers so that the master and the
 slaves use all available resources.
@@ -1172,7 +1230,7 @@ saveplot(plt,"speedUpWorkers")
 ```
 \textoutput{plot9}
 
-### Amndahl's Law
+### Amdahl's Law
 
 This phenomenon is an excellent example of Amdahl's law, presented by 1967 by Gene Amdahl, which establishes the theoretical limits of the achievable speedup when only a fraction of a process can be parallelized.
 
@@ -1183,6 +1241,38 @@ $$\lim_{n\to\infty} S=\lim_{n\to\infty} \frac{1}{1-p+\frac{p}{n}}=\frac{1}{1-p}$
 
 In our problem, the sequential time using only one worker took 22.5 seconds, of which 1.4 are wasted launching the additional process. This means that the parallelizable part is a fraction $p=\frac{22.5-1.4}{22.5}=0.938$. In this case, the maximum speedup would not exceed 16, a far cry from the 10 that we obtained in the best case. In practice, the situation is even worse, as $T_s$ is not constant and, in fact, increases with $n$. For example, using 96 processors, $T_s$ is already $2.13$, which gives a maximum speedup of 13.5. Obviously, our example has other parts that cannot be parallelized.
 
+## Rendering
+
+In this experiment, we tested the scalability of the popular raytracer POVRay. This is one of Khepri's rendering backends and, therefore, we used Khepri to generate the following 3D structure containing different materials (metal, glass, etc):
+
+\fig{/DomeTrussRibs}
+
+Usually, Khepri handles POVRay without any help from the user but, in this experiment, we did not want to include the time it takes for Khepri to generate the information to POVRay and then to start it.  Therefore, we took the input files generated by Khepri for POVRay and we tested them directly.
+
+We knew that, by default, POVRay uses all available CPUs to divide most of the raytracing process between them. However, we found it difficult to make it use fewer CPUs, even when we specified so on the batch script. We were able to solve the problem by using the `Work_Threads` option of POVRay, which specifies the number of threads that it should use. The corresponding Slurm script looked like this:
+
+```bash
+#!/bin/bash
+
+#SBATCH --job-name=TestPOVRay
+#SBATCH --time=02:00:00
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH -p <...?
+#SBATCH -q <...>
+
+time povray Work_Threads=$SLURM_CPUS_ON_NODE DomeTrussRibs.ini
+```
+
+
+
 ## Optimization
 
 The next set of experiments measured the potential gains that parallelization could provide to optimization problems. To focus on the optimization itself, we used an objective function that was not parallelized. More specifically, the case study was the optimization of the structural properties of a truss, measured by the maximum displacement of all its nodes.  To make things more interesting, the truss had some randomness, namely, in the location of its supports and in the location of its center.
+
+
+## Lessons Learned
+
+1. Use a different job name for each experiment. Slurm has a great accounting system that gives a lot of information about everything we did but it then becomes critical to be able to distinguish between different experiments.
+2. Don't request more resources than the ones you really need. Slurm might be able to process your job soon by using the capacity that is still available on a node that is running other jobs. However, if the nodes do not have enough free capacity to satisfy the requested resources the job will remain waiting until that capacity arrives.
+3. Resources include not only the number of nodes/tasks/cpus needed but also the expected time. Obviously, it should be enough to complete the job or it will be automatically cancelled when the time is over. This can be _very_ annoying when a job is cancelled just before finishing what it was doing for two or three days.
