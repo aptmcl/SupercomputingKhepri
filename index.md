@@ -76,7 +76,7 @@ specific characteristics and that differ significantly from those of a
 typical off-the-shelf computer.
 
 
-## Commodity Hardware
+### Commodity Hardware
 
 Throughout the time, our research has produced a series of programs
 and programming environments.  Given the area, it is not surprising to
@@ -96,7 +96,7 @@ as soon as possible.  Nowadays, users do not want to wait more than
 one day and that is already assuming that the task will be done
 overnight so that results are available in the morning.
 
-## The Supercomputing Hardware
+### The Supercomputing Hardware
 
 Upon approval of our application to the FCT Call on Advanced Computing
 Projects, we were given access to the Cirrus supercomputer, more
@@ -114,7 +114,7 @@ It is also important to mention that users to not have direct access
 to the computing nodes. Instead, they have to use a front-end machine
 with an Intel Xeon CPU L5420 running at 2.5GHz with 32 GB of RAM.
 
-## The Supercomputing Sofware
+### The Supercomputing Sofware
 
 Despite the large differences between the hardware of the Cirrus
 supercomputer and that of a typical laptop, the differences in
@@ -129,7 +129,7 @@ _batch mode_ also implies that it only supports programs that do not
 require interacting with the user and, therefore, do not use a
 graphical user interface.
 
-## The Plan
+### The Plan
 
 Given that the available HPC resources are running Linux variants
 which are very different from the Windows 10 operating system that
@@ -170,7 +170,7 @@ To this end, the plan required the following instalation steps:
 Unfortunately, as we will see, installing even this small selection of
 programs was far from trivial.
 
-## Installing Software
+### Installing Software
 
 A major difficulty for accomplishing the plan is the lack of
 administrative privileges, as it prevents the system-wide installation
@@ -200,7 +200,7 @@ installation requires administrative privileges. We spend some time
 trying alternative ways to install Blender but, given the limited time
 available, we moved on to the next alternative -- POVRay.
 
-## Recompiling Software
+### Recompiling Software
 
 Not all software that is available for Linux (or, more specifically,
 Ubuntu) can directly run on the supercomputer.  Some can only run
@@ -234,7 +234,29 @@ decided to focus on those programs that we had already running and we
 start collecting statistics of their execution using a different
 number of processing units.
 
-## Julia
+## Julia for Parallel Processing
+
+Before anything else, we decided to gain some experience in the use of Julia's parallel processing capabilities.
+
+Julia supports multi-threading and
+distributed computing.  Multi-threading allows multiple tasks to run
+simultaneously on more than one thread or CPU core, sharing memory,
+while distributed computing runs multiple processes with separate
+memory spaces, possibly on different machines.  Given that Khepri is
+not thread-safe, we were particularly interested in testing the
+distributed computing capabilities. These are provided by the
+`Distributed` standard library as well as external packages such as
+`MPI.jl` and `DistributedArrays.jl`.
+
+The `Distributed` approach is based on the idea that one _master_
+process launches a set of _slave_ processes, called workers, using the
+`addprocs` function, to which it distributes units of work, waiting
+for their completion.  Despite being part of the standard library, the
+`Distributed` module must be explicitly loaded on the master process
+to access the `addprocs` function. The module is automatically loaded
+on the worker processes.
+
+### An Embarrassingly Parallel Problem
 
 The first tests attempted to determine how the Julia language
 implementation scales across multiple cores. The following Julia
@@ -309,30 +331,12 @@ saveplot(plt, "approx_pi_single")
 ```
 \textoutput{plot1}
 
-It is relevant to note that despite aparent exponential growth, the
+It is relevant to note that despite the apparent exponential growth, the
 scale is logarithmic and, thus, the computation time grows linearly
 with the number of iterations.
 
 The next step is to repeat the same computation but using parallel
-processing.  To this end, Julia supports multi-threading and
-distributed computing.  Multi-threading allows multiple tasks to run
-simultaneously on more than one thread or CPU core, sharing memory,
-while distributed computing runs multiple processes with separate
-memory spaces, possibly on different machines.  Given that Khepri is
-not thread-safe, we were particularly interested in testing the
-distributed computing capabilities. These are provided by the
-`Distributed` standard library as well as external packages such as
-`MPI.jl` and `DistributedArrays.jl`.
-
-The `Distributed` approach is based on the idea that one _master_
-process launches a set of _slave_ processes, called workers, using the
-`addprocs` function, to which it distributes units of work, waiting
-for their completion.  Despite being part of the standard library, the
-`Distributed` module must be explicitly loaded on the master process
-to access the `addprocs` function. The module is automatically loaded
-on the worker processes.
-
-The next fragment of code demonstrate the creation of workers. We take
+processing. The next fragment of code demonstrate the creation of workers. We take
 the number of processes $n$ that was passed as a command-line argument
 and we create $n-1$ additional workers so that the master and the
 slaves use all available resources.
@@ -344,7 +348,7 @@ addprocs(parse(Int, ARGS[1])-1)
 ```
 
 Despite the simplicity of the `addprocs` function, there is a lot
-going on behind the scenes. Immediatly after its creation, each of the
+going on behind the scenes. Immediately after its creation, each of the
 workers creates a TCP/IP connection, writes on standard output the
 corresponding host and port, and starts listening on that port. The
 master receives the output of each worker and completes the TCP/IP
@@ -646,7 +650,11 @@ saveplot(plt,"userTimeParallelPi")
 
 Now, we see that despite the considerable gains obtained, almost
 halving the time needed, it only pays off to use up to 16
-processes. Our guess for the lack of speedup after 16 processes is
+processes.
+
+### Fairness
+
+Our guess for the lack of speedup after 16 processes is
 that the time spent starting processes and managing them nullifies the
 gains of the parallelization. Another hypothesis is that, despite the number of workers created, Julia is not taking advantage of them because it does not fairly distribute the work among them. To refute (or confirm) this hypothesis, we decide to make a different test.
 
@@ -1093,8 +1101,6 @@ saveplot(plt,"workPerId8")
 ```
 \textoutput{plot6a}
 
-
-
 The following bar graph condenses the entire information in a single plot that shows the division of labor for different numbers of workers. As before, remember that the number of workers is one less than the number of processes. That means that, e.g., for 2 processes, there is just one worker doing all the heavy lifting.
 
 ```julia:plot7
@@ -1115,7 +1121,11 @@ saveplot(plt,"workPerId")
 ```
 \textoutput{plot7}
 
-As is visible, the work was uniformly distributed among the workers, independently of the number of workers being used. The following bar graph reveals another interesting statistic that confirms our previous hypothesis regarding the time spent managing the workers _vs_ the time doing actual work. Here we measured the time needed to launch the workers (the `addprocs` operation) and the total time needed to process all work items.
+As is visible, the work was uniformly distributed among the workers, independently of the number of workers being used.
+
+### Speedup
+
+The following bar graph reveals another interesting statistic that confirms our previous hypothesis regarding the time spent managing the workers _vs_ the time doing actual work. Here we measured the time needed to launch the workers (the `addprocs` operation) and the total time needed to process all work items.
 
 ```julia:plot8
 #hideall
@@ -1145,7 +1155,6 @@ saveplot(plt,"workPerId")
 
 Despite the enormous reduction in the time spent doing actual work (that goes from 22.5 seconds using just one worker to 0.42 seconds using 96 workers, i.e., $\frac{1}{54}$ of the original time), we can see that the actual benefits become marginal when we use more than 32 processes and the situation gets actually worse with 96 processes, as the time to launch all of them dominates the entire computation. With that number of processors, the total time goes from 23.9 seconds to 2.55, i.e., $\frac{1}{10}$ of the original total time. The following plot illustrates the difference between the speedups considering only the time when the workers are doing useful work and the corresponding speedups when we consider the total time.
 
-
 ```julia:plot9
 #hideall
 speedups_work_time = map(row->(work_per_id_bench[1,5])/(row[5]), eachrow(work_per_id_bench))
@@ -1163,6 +1172,16 @@ saveplot(plt,"speedUpWorkers")
 ```
 \textoutput{plot9}
 
+### Amndahl's Law
+
+This phenomenon is an excellent example of Amdahl's law, presented by 1967 by Gene Amdahl, which establishes the theoretical limits of the achievable speedup when only a fraction of a process can be parallelized.
+
+To derive the law, let us call $T$ the total duration of a process that can be divided into two parts: $T=T_s+T_p$, where $T_s$ must be executed sequentially and, thus, cannot benefit from parallelization, and $T_p$ can be parallelized. Assuming that the parallelizable part is a fraction $p=\frac{T_p}{T}$, then $T_p=pT$ and $T_s=T-T_p=T-pT=(1-p)T$.  Therefore, we have $T=(1-p)T + pT$.
+
+After parallelization using $n$ processors, $T_p=pT$ becomes $T'_p=\frac{T_p}{n}=\frac{pT}{n}$. Then, the total time becomes $T'=T_s+T'_p =(1-p)T+\frac{p}{n}T$. The speedup, which is defined as the ratio between the duration of the non-parallelized version and the duration of the parallelized one, becomes $S=\frac{T}{T'}=\frac{T}{(1-p)T+\frac{p}{n}T}=\frac{1}{1-p+\frac{p}{n}}$. Imagining that the number of processors is unlimited, the maximum theoretical speedup becomes
+$$\lim_{n\to\infty} S=\lim_{n\to\infty} \frac{1}{1-p+\frac{p}{n}}=\frac{1}{1-p}$$
+
+In our problem, the sequential time using only one worker took 22.5 seconds, of which 1.4 are wasted launching the additional process. This means that the parallelizable part is a fraction $p=\frac{22.5-1.4}{22.5}=0.938$. In this case, the maximum speedup would not exceed 16, a far cry from the 10 that we obtained in the best case. In practice, the situation is even worse, as $T_s$ is not constant and, in fact, increases with $n$. For example, using 96 processors, $T_s$ is already $2.13$, which gives a maximum speedup of 13.5. Obviously, our example has other parts that cannot be parallelized.
 
 ## Optimization
 
