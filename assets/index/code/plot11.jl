@@ -1,6 +1,6 @@
 # This file was generated, do not modify it. # hide
 #hideall
-povray_1920x1024 = bench_data("""
+povray_1920x1080 = bench_data("""
 RadiosityTime RadiosityThreads RadiosityTotal TraceTime TraceThreads TraceTotal RealTime UserTime SysTime
 0.779 3 2.001 102.021 96 9619.841 1m47.700s 160m24.887s 0m0.904s
 0.762 3 1.985 118.116 80 9315.123 2m3.798s 155m20.004s 0m1.037s
@@ -34,5 +34,5 @@ RadiosityTime RadiosityThreads RadiosityTotal TraceTime TraceThreads TraceTotal 
 0.788 3 2.024 106.134 96 10010.192 1m51.786s 166m55.312s 0m0.851s
 """)
 
-plt = plot_povray(povray_1920x1024)
-saveplot(plt,"POVRay1920x1024")
+plt = plot_povray(povray_1920x1080)
+saveplot(plt,"POVRay1920x1080")
