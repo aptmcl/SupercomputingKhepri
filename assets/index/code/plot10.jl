@@ -33,12 +33,13 @@ RadiosityTime RadiosityThreads RadiosityTotal TraceTime TraceThreads TraceTotal 
 0.823 3 2.373 25.497 96 2102.918 0m30.530s 35m7.262s 0m0.588s
 """)
 
+time2seconds(s) =
+  let m = match(r"(.+)m(.+)s", s)
+    parse(Float64, m.captures[1])*60+parse(Float64, m.captures[2])
+  end
+
 plot_povray(raw_data) =
-  let time2seconds(s) =
-        let m = match(r"(.+)m(.+)s", s)
-          parse(Float64, m.captures[1])*60+parse(Float64, m.captures[2])
-        end
-      data = sort(combine(groupby(raw_data, :TraceThreads),
+  let data = sort(combine(groupby(raw_data, :TraceThreads),
                           :RealTime => it->mean(map(time2seconds, it))),
                   :TraceThreads)
     plot(data[:,1],
