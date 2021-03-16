@@ -1242,24 +1242,97 @@ $$\lim_{n\to\infty} S=\lim_{n\to\infty} \frac{1}{1-p+\frac{p}{n}}=\frac{1}{1-p}$
 
 In our problem, the sequential time using only one worker took 22.5 seconds, of which 1.4 are wasted launching the additional process. This means that the parallelizable part is a fraction $p=\frac{22.5-1.4}{22.5}=0.938$. In this case, the maximum speedup would not exceed 16, a far cry from the 10 that we obtained in the best case. In practice, the situation is even worse, as $T_s$ is not constant and, in fact, increases with $n$. For example, using 96 processors, $T_s$ is already $2.13$, which gives a maximum speedup of 13.5. Obviously, our example has other parts that cannot be parallelized.
 
-## Optimization
+## Design Exploration
 
-The next set of experiments measured the potential gains that parallelization could provide to optimization problems. To focus on the optimization itself, we used an objective function that was not parallelized. More specifically, the case study was the optimization of the structural properties of a truss, measured by the maximum displacement of all its nodes.  To make things more interesting, the truss had some randomness, namely, in the location of its supports and in the location of its center.
+Design space exploration is one of the simplest applications of supercomputing. The idea is to study the impact of a parameter in the performance of a given design. By dividing the domain of the parameter among different computing threads, it becomes possible to do multiple performance evaluations at the same time, each using a different design generated from that parameter.
+
+To evaluate the benefits of the approach, we decided to experiment the design space exploration of a simple truss structure. We were interested in simulating the behavior of the structure as different parameters were changed. To have a metric for the structural performance, we focused on the maximum displacement of the structure elements.
 
 Khepri supports two different structural analysis backends, namely KhepriRobot that connects
 to AutoDesk's Robot and KhepriFrame3DD, which directly accesses a DLL that wraps Frame3DD, static and dynamic structural analysis package for 2D and 3D frames, developed by Prof. Henri P. Gavin of the Department of Civil and Environmental Engineering of Duke University. Given that Robot does not work in non-Windows environments while Frame3DD does not require
 a graphical user interface, the choice for Khepri's backend KhepriFrame3DD was obvious.
 
-To make the example more interesting, we decided to design a truss placed on a slab with a randomized outline, as follows:
+Inspired by Gaudi's ideas, we decided to create a truss where each of the truss' legs is defined by a catenary that connects the leg endpoints. The legs are interconnected using different schemes, for example, just a single bar between corresponding pairs of nodes, or diagonal bars between pairs of pairs of nodes. To make the example more interesting, we decided to design a truss made of Bamboo, placed on a slab with a randomized outline, as follows:
 
-\fig{DomeTrussRibsFHD2.png}
+\fig{/VDomeTrussRibsDeform2-frame-000.png}
 
-This means that the truss does not have an axis of symmetry and, therefore, will be less resistant. To make the computation of the objective more painful, we decided that each of
-the truss' legs will be defined by a catenary that connects the leg endpoints. Given the way
-the catenary is defined, we will have to use an approximation scheme to compute the catenary parameters.
+This means that the truss does not have an axis of symmetry and, therefore, will be less resistant. For the structural simulation we used an approximation of the material properties of Bamboo, namely, a Young's modulus of $E=1.39 GPa$, a Kirchoff's modulus of $G=0.64 GPa$, and a density of $d=5880.0 Kg/m^3$.
+
+Our first experiment was to test a vertical load of increasing magnitude being applied to all the non-supported truss nodes.  The load started at zero and went up to 100 N.  For each load case, the structured was analyzed by KhepriFrame3DD and the computed truss node displacements were used to show the shape of the truss under load. To make the displacement more obvious, we applied a factor of 100. This means that the actual truss deformation is one hundred times smaller than what is illustrated. The following movie shows the truss behavior under increasing load:
+
+~~~
+<video width="700" controls>
+  <source src="http://web.ist.utl.pt/antonio.menezes.leitao/ADA/SuperComputingFilms/VDomeTrussRibsDeform2.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+~~~
+
+The entire analysis, containing 200 different load cases whose results were rendered in FHD, required 1h46m to generate. One problem we had was that each structural analysis was entirely sequential and, thus, could not benefit from multiple CPUs or multiple computing nodes. On the other hand, it is relevant to mention that the largest fraction of the time (around 99%) is spent rendering, which is already highly parallelized and takes full advantage of the 96 CPUs available.
+
+Another experiment was the addition of an horizontal force, which we established as one tenth of the vertical one. This small addition considerably impacts the structural behavior of the truss. The following movie compares the base load case, with this one.
+
+~~~
+<video width="700" controls>
+  <source src="http://web.ist.utl.pt/antonio.menezes.leitao/ADA/SuperComputingFilms/WDomeTrussRibsDeform23.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+~~~
+
+The second analysis, again with 200 load cases, took 1h48m.  Although we did the experiments one after the other, it would have been possible to run them in two different computing nodes, making the total time just the maximum of both times, i.e., 1h48m instead of their sum, i.e., 3h34.
+
+On a further experiment, we studied the impact of the truss bars radius on the structural performance. The following movie illustrates the behavior of a truss that is loaded with a constant force of -10N on each truss node and where the radius of the truss bars goes from 3cm to 5mm. The entire analysis was completed in 1h03m.
+
+~~~
+<video width="700" controls>
+  <source src="http://web.ist.utl.pt/antonio.menezes.leitao/ADA/SuperComputingFilms/DomeTrussRibsDeformRadiusW35.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+~~~
+
+To have a different perspective on the truss behavior, observe the following movie that more clearly shows the radius reduction and its effect on the structure shape under load.
+
+~~~
+<video width="700" controls>
+  <source src="http://web.ist.utl.pt/antonio.menezes.leitao/ADA/SuperComputingFilms/DomeTrussRibsDeformRadius.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+~~~
+
+This previous analysis required 1h04m to produce. Again, it would have been possible to explore multiple computing nodes, to make multiple analysis to be executed at the same time. In fact, the limitation is not on the computing power available but, instead, on the human power available, as we the motivation for further analyses only emerges after studying the results of the previous one.
+
+Finally, we decided to do a different design space exploration: this time, instead of exploring one design parameter, we explored different truss topologies. The difference lies in the bracings between nodes, as illustrated in the following image:
+
+\fig{/TrussTopology}
+
+Although the two imagens on the right look very similar, they are different, as the one at the bottom has two independent bar connecting alternating nodes, while the top one has one extra node on the crossing between bars, effectively making them four independent bars connected at that extra node.  This has a considerable effect on the truss behavior as it makes it much more difficult to resist compressive forces.
+
+The behavior of the different truss topologies is illustrated in the following movie. All trusses were subjected to the same load case, an increasingly larger vertical force and an horizontal force that is one tenth of the vertical one. Remember that the displacement is amplified by a factor of 100.
+
+~~~
+<video width="700" controls>
+  <source src="http://web.ist.utl.pt/antonio.menezes.leitao/ADA/SuperComputingFilms/WDomeTrussRibsDeform6789.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+~~~
+
+Seen from the inside of the structure, the behavior seems a bit more impressive, as is visible in the following movie:
+
+~~~
+<video width="700" controls>
+  <source src="http://web.ist.utl.pt/antonio.menezes.leitao/ADA/SuperComputingFilms/DomeTrussRibsDeform6789.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+~~~
+
+It is interesting to note that with one exception, these different topologies take approximately the same time to evaluate, slightly under one hour. The exception is the structure at the top right corner, which has significantly more bars and nodes than the others, which cause KhepriFrame3DD to take an inordinate amount of time to analyze the structure (7h33m). Just in case, we repeated the four simulations twice but the results came almost exactly the same.
+
+Given that the structural analysis is single threaded but is chained with the rendering, which is multi-threaded, the best we can do is to analyze multiple cases in different computing nodes. The total time, though, is the maximum, that is, 7h33.
 
 
-The following Julia script uses KhepriFrame3DD to model a 3D frame.
+## Optimization
+
+The next set of experiments measured the potential gains that parallelization could provide to optimization problems. To focus on the optimization itself, we used an objective function that was not parallelized. More specifically, the case study was the optimization of the structural properties of a truss, measured by the maximum displacement of all its nodes.  To make things more interesting, the truss had some randomness, namely, in the location of its supports and in the location of its center.
+
 
 ```julia
 using KhepriFrame3DD
