@@ -130,9 +130,13 @@ _batch mode_ also implies that it only supports programs that do not
 require interacting with the user and, therefore, do not use a
 graphical user interface.
 
-This mode of operation is supported by Slurm's job scheduling system.  Slurm is an open source cluster management system that is very popular. This helps significantly, as there is a ton of information available about Slurm.
+This mode of operation is supported by Slurm's job scheduling system.
+Slurm is an open source cluster management system that is very
+popular. This helps significantly, as there is a ton of information
+available about Slurm.
 
-Creating the Slurm _script_ is easy. For our experiments, we used the following template:
+Creating the Slurm _script_ is easy. For our experiments, we used the
+following template:
 
 ```
 #!/bin/bash
@@ -147,7 +151,12 @@ Creating the Slurm _script_ is easy. For our experiments, we used the following 
 <do something, maybe using some environment variables, such as $SLURM_CPUS_ON_NODE>
 ```
 
-Note that anything that starts with `#SBATCH` is treated as relevant information for Slurm. Note also that this information does not affect the script because a line that starts with `#` is treated as a comment by `bash`. In this particular script we specified just some of the job's parameters but there are many other options that can be provided.
+Note that anything that starts with `#SBATCH` is treated as relevant
+information for Slurm. Note also that this information does not affect
+the script because a line that starts with `#` is treated as a comment
+by `bash`. In this particular script we specified just some of the
+job's parameters but there are many other options that can be
+provided.
 
 
 
@@ -230,12 +239,13 @@ after being recompiled for CentOS 7.  Given the difficulty of using
 the frontend for anything more complex than just editing files or
 submitting jobs, we decided to recompile the software on our own
 machines and only move the resulting binaries to the supercomputer.
-In the beginning we were doing this using a Ubuntu installation running
-on Windows Subsystem for Linux (WSL), which we expect would be very
-similar to CentOS.  However, we quickly discovered that there were
-errors related to differences in the libraries of Ubuntu and CentOS 7. To avoid being forced to recompile the software, we initially
-attempted to solve these dependency errors but soon realized that it
-would not end up well.
+In the beginning we were doing this using a Ubuntu installation
+running on Windows Subsystem for Linux (WSL), which we expect would be
+very similar to CentOS.  However, we quickly discovered that there
+were errors related to differences in the libraries of Ubuntu and
+CentOS 7. To avoid being forced to recompile the software, we
+initially attempted to solve these dependency errors but soon realized
+that it would not end up well.
 
 In the end, to avoid errors due to different software versions, we
 installed the exact same operating system on a virtual machine. This
@@ -258,7 +268,8 @@ number of processing units.
 
 ## Julia for Parallel Processing
 
-Before anything else, we decided to gain some experience in the use of Julia's parallel processing capabilities.
+Before anything else, we decided to gain some experience in the use of
+Julia's parallel processing capabilities.
 
 Julia supports multi-threading and
 distributed computing.  Multi-threading allows multiple tasks to run
@@ -713,11 +724,16 @@ processes.
 
 ### Fairness
 
-Our guess for the lack of speedup after 16 processes is
-that the time spent starting processes and managing them nullifies the
-gains of the parallelization. Another hypothesis is that, despite the number of workers created, Julia is not taking advantage of them because it does not fairly distribute the work among them. To refute (or confirm) this hypothesis, we decide to make a different test.
+Our guess for the lack of speedup after 16 processes is that the time
+spent starting processes and managing them nullifies the gains of the
+parallelization. Another hypothesis is that, despite the number of
+workers created, Julia is not taking advantage of them because it does
+not fairly distribute the work among them. To refute (or confirm) this
+hypothesis, we decide to make a different test.
 
-The goal, now, is to distribute identical work units among the workers and collect the number of units that were processed by each worker. To that end, we used the following program:
+The goal, now, is to distribute identical work units among the workers
+and collect the number of units that were processed by each worker. To
+that end, we used the following program:
 
 ```julia
 using Distributed
@@ -727,9 +743,18 @@ addprocs(parse(Int, ARGS[1])-1)
 res = @time pmap(work, 1:2000)
 ```
 
-Note that the work unit of each process is just a quick `sleep`. Each process then returns its own _id_. The master, besides repeatedly sending elements of the range `1:2000` to the available workers, collects the results. This means that the range ends up being converted into an array of process _id_s, where each _id_ represents the process that handled that work unit.
+Note that the work unit of each process is just a quick `sleep`. Each
+process then returns its own _id_. The master, besides repeatedly
+sending elements of the range `1:2000` to the available workers,
+collects the results. This means that the range ends up being
+converted into an array of process _id_s, where each _id_ represents
+the process that handled that work unit.
 
-After the range is exhausted, the array of _id_s is processed to count the number of times each _id_ shows up. If the distribution is fair, all processes will have more or less the same number of occurrences in the array, meaning that all of them had to process a similar number of work units.
+After the range is exhausted, the array of _id_s is processed to count
+the number of times each _id_ shows up. If the distribution is fair,
+all processes will have more or less the same number of occurrences in
+the array, meaning that all of them had to process a similar number of
+work units.
 
 ```julia
 distr = Dict([i=>0 for i in workers()])
@@ -738,7 +763,9 @@ for i in res
 end
 ```
 
-Finally, for each process _id_ we print the number of times it occurred in the array, i.e., the number of work units that it had to process.
+Finally, for each process _id_ we print the number of times it
+occurred in the array, i.e., the number of work units that it had to
+process.
 
 ```julia
 for i in workers()
@@ -746,7 +773,8 @@ for i in workers()
 end
 ```
 
-In the following bar graph, we plot that number for each process, whose _id_ is presented on the horizontal axis.
+In the following bar graph, we plot that number for each process,
+whose _id_ is presented on the horizontal axis.
 
 ```julia:plot5
 #hideall
@@ -1124,7 +1152,10 @@ saveplot(plt,"workPerId96")
 ```
 \textoutput{plot5}
 
-Note the fairly regular number of units of work that is done by each worker. Similar plots could be made for other numbers of processes. The next one shows the same statistics but using only 32 processors:
+Note the fairly regular number of units of work that is done by each
+worker. Similar plots could be made for other numbers of
+processes. The next one shows the same statistics but using only 32
+processors:
 
 ```julia:plot6
 #hideall
@@ -1142,7 +1173,8 @@ saveplot(plt,"workPerId32")
 ```
 \textoutput{plot6}
 
-Again, we see a relatively fair distribution of work. The same behavior is seen in the following case, using just four processes:
+Again, we see a relatively fair distribution of work. The same
+behavior is seen in the following case, using just four processes:
 
 ```julia:plot6a
 #hideall
@@ -1160,7 +1192,11 @@ saveplot(plt,"workPerId8")
 ```
 \textoutput{plot6a}
 
-The following bar graph condenses the entire information in a single plot that shows the division of labor for different numbers of workers. As before, remember that the number of workers is one less than the number of processes. That means that, e.g., for 2 processes, there is just one worker doing all the heavy lifting.
+The following bar graph condenses the entire information in a single
+plot that shows the division of labor for different numbers of
+workers. As before, remember that the number of workers is one less
+than the number of processes. That means that, e.g., for 2 processes,
+there is just one worker doing all the heavy lifting.
 
 ```julia:plot7
 #hideall
@@ -1180,11 +1216,16 @@ saveplot(plt,"workPerId")
 ```
 \textoutput{plot7}
 
-As is visible, the work was uniformly distributed among the workers, independently of the number of workers being used.
+As is visible, the work was uniformly distributed among the workers,
+independently of the number of workers being used.
 
 ### Speedup
 
-The following bar graph reveals another interesting statistic that confirms our previous hypothesis regarding the time spent managing the workers _vs_ the time doing actual work. Here we measured the time needed to launch the workers (the `addprocs` operation) and the total time needed to process all work items.
+The following bar graph reveals another interesting statistic that
+confirms our previous hypothesis regarding the time spent managing the
+workers _vs_ the time doing actual work. Here we measured the time
+needed to launch the workers (the `addprocs` operation) and the total
+time needed to process all work items.
 
 ```julia:plot8
 #hideall
@@ -1212,7 +1253,17 @@ saveplot(plt,"workPerId")
 ```
 \textoutput{plot8}
 
-Despite the enormous reduction in the time spent doing actual work (that goes from 22.5 seconds using just one worker to 0.42 seconds using 96 workers, i.e., $\frac{1}{54}$ of the original time), we can see that the actual benefits become marginal when we use more than 32 processes and the situation gets actually worse with 96 processes, as the time to launch all of them dominates the entire computation. With that number of processors, the total time goes from 23.9 seconds to 2.55, i.e., $\frac{1}{10}$ of the original total time. The following plot illustrates the difference between the speedups considering only the time when the workers are doing useful work and the corresponding speedups when we consider the total time.
+Despite the enormous reduction in the time spent doing actual work
+(that goes from 22.5 seconds using just one worker to 0.42 seconds
+using 96 workers, i.e., $\frac{1}{54}$ of the original time), we can
+see that the actual benefits become marginal when we use more than 32
+processes and the situation gets actually worse with 96 processes, as
+the time to launch all of them dominates the entire computation. With
+that number of processors, the total time goes from 23.9 seconds to
+2.55, i.e., $\frac{1}{10}$ of the original total time. The following
+plot illustrates the difference between the speedups considering only
+the time when the workers are doing useful work and the corresponding
+speedups when we consider the total time.
 
 ```julia:plot9
 #hideall
@@ -1233,32 +1284,90 @@ saveplot(plt,"speedUpWorkers")
 
 ### Amdahl's Law
 
-This phenomenon is an excellent example of Amdahl's law, presented by 1967 by Gene Amdahl, which establishes the theoretical limits of the achievable speedup when only a fraction of a process can be parallelized.
+This phenomenon is an excellent example of Amdahl's law, presented by
+1967 by Gene Amdahl, which establishes the theoretical limits of the
+achievable speedup when only a fraction of a process can be
+parallelized.
 
-To derive the law, let us call $T$ the total duration of a process that can be divided into two parts: $T=T_s+T_p$, where $T_s$ must be executed sequentially and, thus, cannot benefit from parallelization, and $T_p$ can be parallelized. Assuming that the parallelizable part is a fraction $p=\frac{T_p}{T}$, then $T_p=pT$ and $T_s=T-T_p=T-pT=(1-p)T$.  Therefore, we have $T=(1-p)T + pT$.
+To derive the law, let us call $T$ the total duration of a process
+that can be divided into two parts: $T=T_s+T_p$, where $T_s$ must be
+executed sequentially and, thus, cannot benefit from parallelization,
+and $T_p$ can be parallelized. Assuming that the parallelizable part
+is a fraction $p=\frac{T_p}{T}$, then $T_p=pT$ and
+$T_s=T-T_p=T-pT=(1-p)T$.  Therefore, we have $T=(1-p)T + pT$.
 
-After parallelization using $n$ processors, $T_p=pT$ becomes $T'_p=\frac{T_p}{n}=\frac{pT}{n}$. Then, the total time becomes $T'=T_s+T'_p =(1-p)T+\frac{p}{n}T$. The speedup, which is defined as the ratio between the duration of the non-parallelized version and the duration of the parallelized one, becomes $S=\frac{T}{T'}=\frac{T}{(1-p)T+\frac{p}{n}T}=\frac{1}{1-p+\frac{p}{n}}$. Imagining that the number of processors is unlimited, the maximum theoretical speedup becomes
-$$\lim_{n\to\infty} S=\lim_{n\to\infty} \frac{1}{1-p+\frac{p}{n}}=\frac{1}{1-p}$$
+After parallelization using $n$ processors, $T_p=pT$ becomes
+$T'_p=\frac{T_p}{n}=\frac{pT}{n}$. Then, the total time becomes
+$T'=T_s+T'_p =(1-p)T+\frac{p}{n}T$. The speedup, which is defined as
+the ratio between the duration of the non-parallelized version and the
+duration of the parallelized one, becomes
+$S=\frac{T}{T'}=\frac{T}{(1-p)T+\frac{p}{n}T}=\frac{1}{1-p+\frac{p}{n}}$. Imagining
+that the number of processors is unlimited, the maximum theoretical
+speedup becomes $$\lim_{n\to\infty} S=\lim_{n\to\infty}
+\frac{1}{1-p+\frac{p}{n}}=\frac{1}{1-p}$$
 
-In our problem, the sequential time using only one worker took 22.5 seconds, of which 1.4 are wasted launching the additional process. This means that the parallelizable part is a fraction $p=\frac{22.5-1.4}{22.5}=0.938$. In this case, the maximum speedup would not exceed 16, a far cry from the 10 that we obtained in the best case. In practice, the situation is even worse, as $T_s$ is not constant and, in fact, increases with $n$. For example, using 96 processors, $T_s$ is already $2.13$, which gives a maximum speedup of 13.5. Obviously, our example has other parts that cannot be parallelized.
+In our problem, the sequential time using only one worker took 22.5
+seconds, of which 1.4 are wasted launching the additional
+process. This means that the parallelizable part is a fraction
+$p=\frac{22.5-1.4}{22.5}=0.938$. In this case, the maximum speedup
+would not exceed 16, a far cry from the 10 that we obtained in the
+best case. In practice, the situation is even worse, as $T_s$ is not
+constant and, in fact, increases with $n$. For example, using 96
+processors, $T_s$ is already $2.13$, which gives a maximum speedup of
+13.5. Obviously, our example has other parts that cannot be
+parallelized.
 
 ## Design Exploration
 
-Design space exploration is one of the simplest applications of supercomputing. The idea is to study the impact of a parameter in the performance of a given design. By dividing the domain of the parameter among different computing threads, it becomes possible to do multiple performance evaluations at the same time, each using a different design generated from that parameter.
+Design space exploration is one of the simplest applications of
+supercomputing. The idea is to study the impact of a parameter in the
+performance of a given design. By dividing the domain of the parameter
+among different computing threads, it becomes possible to do multiple
+performance evaluations at the same time, each using a different
+design generated from that parameter.
 
-To evaluate the benefits of the approach, we decided to experiment the design space exploration of a simple truss structure. We were interested in simulating the behavior of the structure as different parameters were changed. To have a metric for the structural performance, we focused on the maximum displacement of the structure elements.
+To evaluate the benefits of the approach, we decided to experiment the
+design space exploration of a simple truss structure. We were
+interested in simulating the behavior of the structure as different
+parameters were changed. To have a metric for the structural
+performance, we focused on the maximum displacement of the structure
+elements.
 
-Khepri supports two different structural analysis backends, namely KhepriRobot that connects
-to AutoDesk's Robot and KhepriFrame3DD, which directly accesses a DLL that wraps Frame3DD, static and dynamic structural analysis package for 2D and 3D frames, developed by Prof. Henri P. Gavin of the Department of Civil and Environmental Engineering of Duke University. Given that Robot does not work in non-Windows environments while Frame3DD does not require
-a graphical user interface, the choice for Khepri's backend KhepriFrame3DD was obvious.
+Khepri supports two different structural analysis backends, namely
+KhepriRobot that connects to AutoDesk's Robot and KhepriFrame3DD,
+which directly accesses a DLL that wraps Frame3DD, static and dynamic
+structural analysis package for 2D and 3D frames, developed by
+Prof. Henri P. Gavin of the Department of Civil and Environmental
+Engineering of Duke University. Given that Robot does not work in
+non-Windows environments while Frame3DD does not require a graphical
+user interface, the choice for Khepri's backend KhepriFrame3DD was
+obvious.
 
-Inspired by Gaudi's ideas, we decided to create a truss where each of the truss' legs is defined by a catenary that connects the leg endpoints. The legs are interconnected using different schemes, for example, just a single bar between corresponding pairs of nodes, or diagonal bars between pairs of pairs of nodes. To make the example more interesting, we decided to design a truss made of Bamboo, placed on a slab with a randomized outline, as follows:
+Inspired by Gaudi's ideas, we decided to create a truss where each of
+the truss' legs is defined by a catenary that connects the leg
+endpoints. The legs are interconnected using different schemes, for
+example, just a single bar between corresponding pairs of nodes, or
+diagonal bars between pairs of pairs of nodes. To make the example
+more interesting, we decided to design a truss made of Bamboo, placed
+on a slab with a randomized outline, as follows:
 
 \fig{/VDomeTrussRibsDeform2-frame-000.png}
 
-This means that the truss does not have an axis of symmetry and, therefore, will be less resistant. For the structural simulation we used an approximation of the material properties of Bamboo, namely, a Young's modulus of $E=1.39 GPa$, a Kirchoff's modulus of $G=0.64 GPa$, and a density of $d=5880.0 Kg/m^3$.
+This means that the truss does not have an axis of symmetry and,
+therefore, will be less resistant. For the structural simulation we
+used an approximation of the material properties of Bamboo, namely, a
+Young's modulus of $E=1.39 GPa$, a Kirchoff's modulus of $G=0.64 GPa$,
+and a density of $d=5880.0 Kg/m^3$.
 
-Our first experiment was to test a vertical load of increasing magnitude being applied to all the non-supported truss nodes.  The load started at zero and went up to 100 N.  For each load case, the structured was analyzed by KhepriFrame3DD and the computed truss node displacements were used to show the shape of the truss under load. To make the displacement more obvious, we applied a factor of 100. This means that the actual truss deformation is one hundred times smaller than what is illustrated. The following movie shows the truss behavior under increasing load:
+Our first experiment was to test a vertical load of increasing
+magnitude being applied to all the non-supported truss nodes.  The
+load started at zero and went up to 100 N.  For each load case, the
+structured was analyzed by KhepriFrame3DD and the computed truss node
+displacements were used to show the shape of the truss under load. To
+make the displacement more obvious, we applied a factor of 100. This
+means that the actual truss deformation is one hundred times smaller
+than what is illustrated. The following movie shows the truss behavior
+under increasing load:
 
 ~~~
 <video width="700" controls>
@@ -1267,9 +1376,18 @@ Our first experiment was to test a vertical load of increasing magnitude being a
 </video>
 ~~~
 
-The entire analysis, containing 200 different load cases whose results were rendered in FHD, required 1h46m to generate. One problem we had was that each structural analysis was entirely sequential and, thus, could not benefit from multiple CPUs or multiple computing nodes. On the other hand, it is relevant to mention that the largest fraction of the time (around 99%) is spent rendering, which is already highly parallelized and takes full advantage of the 96 CPUs available.
+The entire analysis, containing 200 different load cases whose results
+were rendered in FHD, required 1h46m to generate. One problem we had
+was that each structural analysis was entirely sequential and, thus,
+could not benefit from multiple CPUs or multiple computing nodes. On
+the other hand, it is relevant to mention that the largest fraction of
+the time (around 99%) is spent rendering, which is already highly
+parallelized and takes full advantage of the 96 CPUs available.
 
-Another experiment was the addition of an horizontal force, which we established as one tenth of the vertical one. This small addition considerably impacts the structural behavior of the truss. The following movie compares the base load case, with this one.
+Another experiment was the addition of an horizontal force, which we
+established as one tenth of the vertical one. This small addition
+considerably impacts the structural behavior of the truss. The
+following movie compares the base load case, with this one.
 
 ~~~
 <video width="700" controls>
@@ -1278,9 +1396,17 @@ Another experiment was the addition of an horizontal force, which we established
 </video>
 ~~~
 
-The second analysis, again with 200 load cases, took 1h48m.  Although we did the experiments one after the other, it would have been possible to run them in two different computing nodes, making the total time just the maximum of both times, i.e., 1h48m instead of their sum, i.e., 3h34.
+The second analysis, again with 200 load cases, took 1h48m.  Although
+we did the experiments one after the other, it would have been
+possible to run them in two different computing nodes, making the
+total time just the maximum of both times, i.e., 1h48m instead of
+their sum, i.e., 3h34.
 
-On a further experiment, we studied the impact of the truss bars radius on the structural performance. The following movie illustrates the behavior of a truss that is loaded with a constant force of -10N on each truss node and where the radius of the truss bars goes from 3cm to 5mm. The entire analysis was completed in 1h03m.
+On a further experiment, we studied the impact of the truss bars
+radius on the structural performance. The following movie illustrates
+the behavior of a truss that is loaded with a constant force of -10N
+on each truss node and where the radius of the truss bars goes from
+3cm to 5mm. The entire analysis was completed in 1h03m.
 
 ~~~
 <video width="700" controls>
@@ -1289,7 +1415,9 @@ On a further experiment, we studied the impact of the truss bars radius on the s
 </video>
 ~~~
 
-To have a different perspective on the truss behavior, observe the following movie that more clearly shows the radius reduction and its effect on the structure shape under load.
+To have a different perspective on the truss behavior, observe the
+following movie that more clearly shows the radius reduction and its
+effect on the structure shape under load.
 
 ~~~
 <video width="700" controls>
@@ -1298,15 +1426,33 @@ To have a different perspective on the truss behavior, observe the following mov
 </video>
 ~~~
 
-This previous analysis required 1h04m to produce. Again, it would have been possible to explore multiple computing nodes, to make multiple analysis to be executed at the same time. In fact, the limitation is not on the computing power available but, instead, on the human power available, as we the motivation for further analyses only emerges after studying the results of the previous one.
+This previous analysis required 1h04m to produce. Again, it would have
+been possible to explore multiple computing nodes, to make multiple
+analysis to be executed at the same time. In fact, the limitation is
+not on the computing power available but, instead, on the human power
+available, as we the motivation for further analyses only emerges
+after studying the results of the previous one.
 
-Finally, we decided to do a different design space exploration: this time, instead of exploring one design parameter, we explored different truss topologies. The difference lies in the bracings between nodes, as illustrated in the following image:
+Finally, we decided to do a different design space exploration: this
+time, instead of exploring one design parameter, we explored different
+truss topologies. The difference lies in the bracings between nodes,
+as illustrated in the following image:
 
 \fig{/TrussTopology}
 
-Although the two imagens on the right look very similar, they are different, as the one at the bottom has two independent bar connecting alternating nodes, while the top one has one extra node on the crossing between bars, effectively making them four independent bars connected at that extra node.  This has a considerable effect on the truss behavior as it makes it much more difficult to resist compressive forces.
+Although the two imagens on the right look very similar, they are
+different, as the one at the bottom has two independent bar connecting
+alternating nodes, while the top one has one extra node on the
+crossing between bars, effectively making them four independent bars
+connected at that extra node.  This has a considerable effect on the
+truss behavior as it makes it much more difficult to resist
+compressive forces.
 
-The behavior of the different truss topologies is illustrated in the following movie. All trusses were subjected to the same load case, an increasingly larger vertical force and an horizontal force that is one tenth of the vertical one. Remember that the displacement is amplified by a factor of 100.
+The behavior of the different truss topologies is illustrated in the
+following movie. All trusses were subjected to the same load case, an
+increasingly larger vertical force and an horizontal force that is one
+tenth of the vertical one. Remember that the displacement is amplified
+by a factor of 100.
 
 ~~~
 <video width="700" controls>
@@ -1315,7 +1461,8 @@ The behavior of the different truss topologies is illustrated in the following m
 </video>
 ~~~
 
-Seen from the inside of the structure, the behavior seems a bit more impressive, as is visible in the following movie:
+Seen from the inside of the structure, the behavior seems a bit more
+impressive, as is visible in the following movie:
 
 ~~~
 <video width="700" controls>
@@ -1324,16 +1471,37 @@ Seen from the inside of the structure, the behavior seems a bit more impressive,
 </video>
 ~~~
 
-It is interesting to note that with one exception, these different topologies take approximately the same time to evaluate, slightly under one hour. The exception is the structure at the top right corner, which has significantly more bars and nodes than the others, which cause KhepriFrame3DD to take an inordinate amount of time to analyze the structure (7h33m). Just in case, we repeated the four simulations twice but the results came almost exactly the same.
+It is interesting to note that with one exception, these different
+topologies take approximately the same time to evaluate, slightly
+under one hour. The exception is the structure at the top right
+corner, which has significantly more bars and nodes than the others,
+which cause KhepriFrame3DD to take an inordinate amount of time to
+analyze the structure (7h33m). Just in case, we repeated the four
+simulations twice but the results came almost exactly the same.
 
-Given that the structural analysis is single threaded but is chained with the rendering, which is multi-threaded, the best we can do is to analyze multiple cases in different computing nodes. The total time, though, is the maximum, that is, 7h33.
+Given that the structural analysis is single threaded but is chained
+with the rendering, which is multi-threaded, the best we can do is to
+analyze multiple cases in different computing nodes. The total time,
+though, is the maximum, that is, 7h33.
 
 
 ## Optimization
 
-The next set of experiments measured the potential gains that parallelization could provide to optimization problems. To focus on the optimization itself, we used an objective function that was not parallelized. More specifically, the case study was the optimization of the structural properties of the previous truss, measured by the maximum displacement of all its nodes. The variable vector to optimize is the location of the truss' center, i.e., the point at the top where all truss legs join.
+The next set of experiments measured the potential gains that
+parallelization could provide to optimization problems. To focus on
+the optimization itself, we used an objective function that was not
+parallelized. More specifically, the case study was the optimization
+of the structural properties of the previous truss, measured by the
+maximum displacement of all its nodes. The variable vector to optimize
+is the location of the truss' center, i.e., the point at the top where
+all truss legs join.
 
-We started by considering only the X and Y location of the truss' center, fixing its height. This means that we will have two variables to optimize.  The objective function landscape is a very simple one, as represented in the following plot where we show the maximum displacement of the truss nodes for different locations $(X,Y)$ (at a fixed height) of the truss' central node.
+We started by considering only the X and Y location of the truss'
+center, fixing its height. This means that we will have two variables
+to optimize.  The objective function landscape is a very simple one,
+as represented in the following plot where we show the maximum
+displacement of the truss nodes for different locations $(X,Y)$ (at a
+fixed height) of the truss' central node.
 
 ```julia:truss_center
 #hideall
@@ -1986,7 +2154,10 @@ saveplot(plt,"trussCenter")
 ```
 \textoutput{truss_center}
 
-To make the example more interesting (and to enlarge the range of variation of the objective function, we decided to also apply an horizontal force to the truss' nodes, changing the objective function landscape:
+To make the example more interesting (and to enlarge the range of
+variation of the objective function, we decided to also apply an
+horizontal force to the truss' nodes, changing the objective function
+landscape:
 
 ```julia:truss_offset
 #hideall
@@ -2622,9 +2793,19 @@ saveplot(plt,"trussOffset")
 ```
 \textoutput{truss_offset}
 
-Given that we were interested in evaluating the scalability of the optimization as the number of CPUs increases, we selected optimization algorithms that we knew were already parallelized. A suitable candidade is BlackBoxOptim, a parallelized optimization package supporting both multi- and single-objective optimization problems using meta-heuristics algorithms.
+Given that we were interested in evaluating the scalability of the
+optimization as the number of CPUs increases, we selected optimization
+algorithms that we knew were already parallelized. A suitable
+candidade is BlackBoxOptim, a parallelized optimization package
+supporting both multi- and single-objective optimization problems
+using meta-heuristics algorithms.
 
-BlackBoxOptim supports both multithreaded and parallel execution, allowing the optimization algorithm to evaluate many candidate solutions at the same time. Given that Khepri is not yet thread-safe, we opted for parallel evaluation using multiple independent processes.  Following the BlackBoxOptim guidelines, we used the following template:
+BlackBoxOptim supports both multithreaded and parallel execution,
+allowing the optimization algorithm to evaluate many candidate
+solutions at the same time. Given that Khepri is not yet thread-safe,
+we opted for parallel evaluation using multiple independent processes.
+Following the BlackBoxOptim guidelines, we used the following
+template:
 
 ```julia
 using Distributed
@@ -2648,13 +2829,40 @@ println("Solution candidate:", best_candidate(res))
 println("Solution fitness:", best_fitness(res))
 ```
 
-Given that the master process is responsible for running the optimization algorithm and the workers are only responsible for evaluating candidate solutions, we fixed the seed of the master's random number generator so that we could repeat the experiments with a different number of workers but without changing the sequence of steps taken. This ensures that the optimization always finds the same solution after the same number of steps.
+Given that the master process is responsible for running the
+optimization algorithm and the workers are only responsible for
+evaluating candidate solutions, we fixed the seed of the master's
+random number generator so that we could repeat the experiments with a
+different number of workers but without changing the sequence of steps
+taken. This ensures that the optimization always finds the same
+solution after the same number of steps.
 
-Note that BlackBoxOptim requires, first, that we setup the optimization problem, using the `bbsetup` function. Here, the `displacement` argument is the function to minimize. It measures the maximum displacement of a truss' node. The next argument specifies the optimization method to use, in this case, we selected the Exponential Natural Evolution Strategy (xNES). Then, we specify the domain of the two variables $x$ and $y$ representing the projection on the $XY$ plane of the point where all the truss' arcs join. Note that this is a square that fits inside the slab that supports the truss. We also specify the maximum number of objective function evaluations and the set of workers that will be used to compute those evaluations.
+Note that BlackBoxOptim requires, first, that we setup the
+optimization problem, using the `bbsetup` function. Here, the
+`displacement` argument is the function to minimize. It measures the
+maximum displacement of a truss' node. The next argument specifies the
+optimization method to use, in this case, we selected the Exponential
+Natural Evolution Strategy (xNES). Then, we specify the domain of the
+two variables $x$ and $y$ representing the projection on the $XY$
+plane of the point where all the truss' arcs join. Note that this is a
+square that fits inside the slab that supports the truss. We also
+specify the maximum number of objective function evaluations and the
+set of workers that will be used to compute those evaluations.
 
-After the setup, the function `bboptimize` does the job of coordinating the workers, assigning them candidate solutions to evaluate, collecting the results and deciding the evolution of the set of candidates.
+After the setup, the function `bboptimize` does the job of
+coordinating the workers, assigning them candidate solutions to
+evaluate, collecting the results and deciding the evolution of the set
+of candidates.
 
-As before, we tested the script using an increasing number of workers and we did three independent runs to smooth out the noise. We allowed the optimization to do a maximum number of objective function evaluations of 1000. In all cases, the solution found was the same, as expected from the fixed random seed used that forced the optimization to be deterministic. The following table presents the mean time spent in the optimization process for different numbers of processes. Again, note that the number of workers is one less than the number of processes.
+As before, we tested the script using an increasing number of workers
+and we did three independent runs to smooth out the noise. We allowed
+the optimization to do a maximum number of objective function
+evaluations of 1000. In all cases, the solution found was the same, as
+expected from the fixed random seed used that forced the optimization
+to be deterministic. The following table presents the mean time spent
+in the optimization process for different numbers of processes. Again,
+note that the number of workers is one less than the number of
+processes.
 
 ```julia:plotopt1
 #hideall
@@ -2716,7 +2924,12 @@ saveplot(plt,"xnes1000")
 ```
 \textoutput{plotopt1}
 
-Results show that the optimization clearly benefits from the use of multiple workers evaluating candidate solutions in parallel but only up to eight processes. After that, there is no benefit. We then repeated the same experiment but now using a five times larger number of objective function evaluations, i.e., 5000. The results were the following:
+Results show that the optimization clearly benefits from the use of
+multiple workers evaluating candidate solutions in parallel but only
+up to eight processes. After that, there is no benefit. We then
+repeated the same experiment but now using a five times larger number
+of objective function evaluations, i.e., 5000. The results were the
+following:
 
 ```julia:plotopt2
 #hideall
@@ -2738,9 +2951,16 @@ saveplot(plt,"xnes1000")
 ```
 \textoutput{plotopt2}
 
-As is obvious, increasing the number of objective function evaluations only scales the bar graph. The overall speedups are exactly the same.
+As is obvious, increasing the number of objective function evaluations
+only scales the bar graph. The overall speedups are exactly the same.
 
-We hypothesized that the cause for the lack of scalability was the limited size of the population that was used by default in xNES. Given that BlackBoxOptim fixes the population size at 50, we experimented increasing this to 100 in the hope that it would allow the algorithm to have more evaluations to divide among the workers. The following plots illustrates the results for a one-thousand limit in the number of function evaluations:
+We hypothesized that the cause for the lack of scalability was the
+limited size of the population that was used by default in xNES. Given
+that BlackBoxOptim fixes the population size at 50, we experimented
+increasing this to 100 in the hope that it would allow the algorithm
+to have more evaluations to divide among the workers. The following
+plots illustrates the results for a one-thousand limit in the number
+of function evaluations:
 
 ```julia:plotopt3
 #hideall
@@ -2760,9 +2980,12 @@ saveplot(plt,"xnes1000pop100")
 ```
 \textoutput{plotopt3}
 
-Once again, the speedups seem to be limited to eight processes and given that there were no expected gains after that, we stopped the process after collecting data for up to 64 processes.
+Once again, the speedups seem to be limited to eight processes and
+given that there were no expected gains after that, we stopped the
+process after collecting data for up to 64 processes.
 
-We then experimented increasing both the population size and the number of function evaluations to, respectively, 500 and 5000.
+We then experimented increasing both the population size and the
+number of function evaluations to, respectively, 500 and 5000.
 
 ```julia:plotopt6
 #hideall
@@ -2784,9 +3007,17 @@ saveplot(plt,"xnes500_5000")
 ```
 \textoutput{plotopt6}
 
-As visible, there is not significant differences. The optimization seems to not scale beyond eight processes.
+As visible, there is not significant differences. The optimization
+seems to not scale beyond eight processes.
 
-The next experiment was to increase the dimensionality of the design space, by increasing from two to three independent variables. Now, besides the $X$ and $Y$ location of the central node of the truss, we also optimized it $Z$ location, allowing it to vary between 1 and 20. We also decided to experiment running the process using just one thread, to better understand the advantages of parallelization. Fixing the maximum number of evaluations at 2000, we obtain the following results:
+The next experiment was to increase the dimensionality of the design
+space, by increasing from two to three independent variables. Now,
+besides the $X$ and $Y$ location of the central node of the truss, we
+also optimized it $Z$ location, allowing it to vary between 1 and
+20. We also decided to experiment running the process using just one
+thread, to better understand the advantages of parallelization. Fixing
+the maximum number of evaluations at 2000, we obtain the following
+results:
 
 ```julia:plotopt5
 #hideall
@@ -2804,9 +3035,17 @@ saveplot(plt,"xnes3V")
 ```
 \textoutput{plotopt5}
 
-Given the time it takes to produce these results, we stopped the experiment as soon as we were sure that there were no more improvements. Note the considerable gains obtained moving from one process to two to four and to height, with an almost constant speedup of 2, but it clearly stops after we reach height processes.
+Given the time it takes to produce these results, we stopped the
+experiment as soon as we were sure that there were no more
+improvements. Note the considerable gains obtained moving from one
+process to two to four and to height, with an almost constant speedup
+of 2, but it clearly stops after we reach height processes.
 
-Finally, we decided to experiment with a different optimization algorithm, this time Separable Natural Evolution Strategy (sNES). We used the initial set of variables (just the $X$ and $Y$ coordinates of the central truss node), an initial population size of 500 and a maximum number of objective function evaluations of 5000.
+Finally, we decided to experiment with a different optimization
+algorithm, this time Separable Natural Evolution Strategy (sNES). We
+used the initial set of variables (just the $X$ and $Y$ coordinates of
+the central truss node), an initial population size of 500 and a
+maximum number of objective function evaluations of 5000.
 
 ```julia:plotopt7
 #hideall
@@ -2828,24 +3067,65 @@ saveplot(plt,"snes5000")
 ```
 \textoutput{plotopt7}
 
-In this case, there is an important speedup (3X) in the transition from 2 to 4 processes, that is explainable, possibly, by the fact that the transition is, in fact, from 1 worker to 3 workers, meaning that we can triple the number of objective function evaluations being done on each step. It is less clear why the previous experiments did not show the same initial speedup.  In the end, we were not impressed with the speedups that we obtained from all of these experiments. We can conclude that for the specific algorithms and optimization problems that we studied, there is no justification to use more than 8 processes.  The good news is that this is the typical number of computing threads that are currently available in most off-the-shelf hardware. The bad news is that it does not make the case for the use of supercomputers which have much larger numbers of threads.
+In this case, there is an important speedup (3X) in the transition
+from 2 to 4 processes, that is explainable, possibly, by the fact that
+the transition is, in fact, from 1 worker to 3 workers, meaning that
+we can triple the number of objective function evaluations being done
+on each step. It is less clear why the previous experiments did not
+show the same initial speedup.  In the end, we were not impressed with
+the speedups that we obtained from all of these experiments. We can
+conclude that for the specific algorithms and optimization problems
+that we studied, there is no justification to use more than 8
+processes.  The good news is that this is the typical number of
+computing threads that are currently available in most off-the-shelf
+hardware. The bad news is that it does not make the case for the use
+of supercomputers which have much larger numbers of threads.
 
-There is, however, a silver lining. In all of these experiments, we used just one computing node for each specific algorithm, but we managed to use different computing nodes for different experiments. This means that, in practice, the time needed to do the entire set of experiments is not the sum of the times needed for each experiment but the maximum of all those times, subject to the limitation that we could only explore four computing nodes and to the fact that there were other jobs competing for those resources. Nevertheless, it demonstrates the potential gains that can be obtained when addressing the No Free Lunch theorem, which states that no optimization algorithm is better than all others in all cases. The consequence is that multiple algorithms need to be tested and the ability to use multiple computing nodes allows these tests to be done simultaneously, thus taking no more time than the time needed to run the slowest of them.
+There is, however, a silver lining. In all of these experiments, we
+used just one computing node for each specific algorithm, but we
+managed to use different computing nodes for different
+experiments. This means that, in practice, the time needed to do the
+entire set of experiments is not the sum of the times needed for each
+experiment but the maximum of all those times, subject to the
+limitation that we could only explore four computing nodes and to the
+fact that there were other jobs competing for those
+resources. Nevertheless, it demonstrates the potential gains that can
+be obtained when addressing the No Free Lunch theorem, which states
+that no optimization algorithm is better than all others in all
+cases. The consequence is that multiple algorithms need to be tested
+and the ability to use multiple computing nodes allows these tests to
+be done simultaneously, thus taking no more time than the time needed
+to run the slowest of them.
 
 
 ## Rendering
 
-Rendering is a extremely time-consuming task. At the same time, it is one that can have significant speedups when there are sufficient resources available.  In this section, we experimented different rendering tasks and measured the effective gains.
+Rendering is a extremely time-consuming task. At the same time, it is
+one that can have significant speedups when there are sufficient
+resources available.  In this section, we experimented different
+rendering tasks and measured the effective gains.
 
 ### Rendering an Image
 
-In this experiment, we tested the scalability of the popular raytracer POVRay. This is one of Khepri's rendering backends and, therefore, we used Khepri to generate the following 3D structure containing different materials (metal, glass, etc):
+In this experiment, we tested the scalability of the popular raytracer
+POVRay. This is one of Khepri's rendering backends and, therefore, we
+used Khepri to generate the following 3D structure containing
+different materials (metal, glass, etc):
 
 \fig{/DomeTrussRibs}
 
-Usually, Khepri handles POVRay without any help from the user but, in this experiment, we did not want to include the time it takes for Khepri to generate the information to POVRay and then to start it.  Therefore, we took the input files generated by Khepri for POVRay and we tested them directly.
+Usually, Khepri handles POVRay without any help from the user but, in
+this experiment, we did not want to include the time it takes for
+Khepri to generate the information to POVRay and then to start it.
+Therefore, we took the input files generated by Khepri for POVRay and
+we tested them directly.
 
-We knew that, by default, POVRay uses all available CPUs to divide most of the raytracing process between them. However, we found it difficult to make it use fewer CPUs, even when we specified so on the batch script. We were able to solve the problem by using the `Work_Threads` option of POVRay, which specifies the number of threads that it should use. The corresponding Slurm script looked like this:
+We knew that, by default, POVRay uses all available CPUs to divide
+most of the raytracing process between them. However, we found it
+difficult to make it use fewer CPUs, even when we specified so on the
+batch script. We were able to solve the problem by using the
+`Work_Threads` option of POVRay, which specifies the number of threads
+that it should use. The corresponding Slurm script looked like this:
 
 ```bash
 #!/bin/bash
@@ -2860,7 +3140,10 @@ We knew that, by default, POVRay uses all available CPUs to divide most of the r
 time povray Work_Threads=$SLURM_CPUS_ON_NODE DomeTrussRibs.ini
 ```
 
-In this experiment, to avoid fluctuations in the load of the computing node, we decided to repeat the test three times and present the average. First, we attempted to render a 1024 by 768 image. The real time spent for different numbers of threads is the following:
+In this experiment, to avoid fluctuations in the load of the computing
+node, we decided to repeat the test three times and present the
+average. First, we attempted to render a 1024 by 768 image. The real
+time spent for different numbers of threads is the following:
 
 ```julia:plot10
 #hideall
@@ -2923,7 +3206,10 @@ saveplot(plt,"POVRay1024x768")
 ```
 \textoutput{plot10}
 
-To have another data point, we then decided to change the point of view, while also increasing the size of the image from the previous 1024x768 to 1920x1024. This changes not only the number of pixels, but also the aspect ratio, producing the following image:
+To have another data point, we then decided to change the point of
+view, while also increasing the size of the image from the previous
+1024x768 to 1920x1024. This changes not only the number of pixels, but
+also the aspect ratio, producing the following image:
 
 \fig{/DomeTrussRibsFHD2}
 
@@ -2970,9 +3256,13 @@ saveplot(plt,"POVRay1920x1024")
 ```
 \textoutput{plot11}
 
-Note there are relevant speedups up to the upper limit of threads. Although it pales in comparison to the initial gains, from 80 threads to 96 threads, there is still a significant reduction from 130.8 seconds to 110.3 seconds.
+Note there are relevant speedups up to the upper limit of
+threads. Although it pales in comparison to the initial gains, from 80
+threads to 96 threads, there is still a significant reduction from
+130.8 seconds to 110.3 seconds.
 
-By analyzing the speedups, we can determine the number of threads that we should use.
+By analyzing the speedups, we can determine the number of threads that
+we should use.
 
 ```julia:plot12
 #hideall
@@ -3005,13 +3295,33 @@ saveplot(plt,"POVRay1024x768vs1920x1024")
 ```
 \textoutput{plot12}
 
-As is visible, for the small rendering task, it only pays off to use up to 80 threads, for an almost 40x speedup compared to just one thread. After that, the gains appear to be marginal.  In the case of the large rendering task, despite the fluctuations, we were able to reach a speedup of almost 65 and the trend line shows that there are even bigger potential speedups waiting for us.  In fact, POVRay can take advantage of 512 threads, so we are still a long way away from that limit.
+As is visible, for the small rendering task, it only pays off to use
+up to 80 threads, for an almost 40x speedup compared to just one
+thread. After that, the gains appear to be marginal.  In the case of
+the large rendering task, despite the fluctuations, we were able to
+reach a speedup of almost 65 and the trend line shows that there are
+even bigger potential speedups waiting for us.  In fact, POVRay can
+take advantage of 512 threads, so we are still a long way away from
+that limit.
 
 ### Rendering a Movie
 
-A movie is made of a sequence of images and, therefore, rendering a movie implies rendering multiples images. For smooth visualization, we should use a minimum of 30 frames per second, which means that a short 10-seconds movie requires at least 300 rendered images. If we further assume that the images should be in Full HD, i.e., using 1920x1080 pixels, then it becomes obvious that even a short movie can take a huge amount of time on a normal computer. In the recent past, we did several of these movies and it was not unusual to wait days or weeks for the completion of the rendering process.
+A movie is made of a sequence of images and, therefore, rendering a
+movie implies rendering multiples images. For smooth visualization, we
+should use a minimum of 30 frames per second, which means that a short
+10-seconds movie requires at least 300 rendered images. If we further
+assume that the images should be in Full HD, i.e., using 1920x1080
+pixels, then it becomes obvious that even a short movie can take a
+huge amount of time on a normal computer. In the recent past, we did
+several of these movies and it was not unusual to wait days or weeks
+for the completion of the rendering process.
 
-As we saw in the previous section, using the Cirrus supercomputer the time need to render each frame becomes acceptable and thus, it is tempting to just generate all of the needed frames in sequence. This relieves the programmer of having to coordinate multiple processes.  The following study of daylight, made of 157 frames at a resolution of 1024x768, was entirely done in 79m36s:
+As we saw in the previous section, using the Cirrus supercomputer the
+time need to render each frame becomes acceptable and thus, it is
+tempting to just generate all of the needed frames in sequence. This
+relieves the programmer of having to coordinate multiple processes.
+The following study of daylight, made of 157 frames at a resolution of
+1024x768, was entirely done in 79m36s:
 
 ~~~
 <video width="700" controls>
@@ -3031,9 +3341,32 @@ Given that the speedup gets bigger at higher resolutions, we attempted the same 
 
 This time, it took 797m30s and, fitting the typical overnight rendering job.
 
-We saw in the previous experiment that POVRay will explore all available threads to render just one frame and, so, there are no more computational resources available that we can use to further speedup the process.  If we start more POVRay processes on the computing node, the computing resources will be divided among them and, therefore, we will slowdown all of them.  However, the Cirrus supercomputer has multiple computing nodes. This means that although it might not be possible to speedup up the rendering of one image beyond the 96 threads available in one computing node, it is possible to speedup the rendering of a sequence of images by dividing the sequence among all available computing nodes. In our case, we were allowed to use four computing nodes and, although we did not experimented it because there were other jobs running that made it impossible to reserve all computing nodes for ourselves, it is clear that it would be possible to divide the rendering tasks among the four different computing nodes to achieve a further 4x speedup, allowing the rendering of a Full HD movie to achieve a speedup of 250.
+We saw in the previous experiment that POVRay will explore all
+available threads to render just one frame and, so, there are no more
+computational resources available that we can use to further speedup
+the process.  If we start more POVRay processes on the computing node,
+the computing resources will be divided among them and, therefore, we
+will slowdown all of them.  However, the Cirrus supercomputer has
+multiple computing nodes. This means that although it might not be
+possible to speedup up the rendering of one image beyond the 96
+threads available in one computing node, it is possible to speedup the
+rendering of a sequence of images by dividing the sequence among all
+available computing nodes. In our case, we were allowed to use four
+computing nodes and, although we did not experimented it because there
+were other jobs running that made it impossible to reserve all
+computing nodes for ourselves, it is clear that it would be possible
+to divide the rendering tasks among the four different computing nodes
+to achieve a further 4x speedup, allowing the rendering of a Full HD
+movie to achieve a speedup of 250.
 
-Another, easier to do, experiment is the production of different movies. In this case, there is no need to coordinate the different computing nodes as each one can do a completely separate job. To prove this, we did a study on the different turbidity degrees of the atmosphere.  First, we wrote a small Khepri script that would receive the turbidity degree as a command line argument and would generate a 400-frames movie of an animated object that is being viewed by a camera that rotates around it:
+Another, easier to do, experiment is the production of different
+movies. In this case, there is no need to coordinate the different
+computing nodes as each one can do a completely separate job. To prove
+this, we did a study on the different turbidity degrees of the
+atmosphere.  First, we wrote a small Khepri script that would receive
+the turbidity degree as a command line argument and would generate a
+400-frames movie of an animated object that is being viewed by a
+camera that rotates around it:
 
 ```julia
 using KhepriPOVRay
@@ -3063,7 +3396,9 @@ for (rho, phi, z) in zip(division(80, 10, nframes),division(0, 2*pi, nframes),di
 end
 ```
 
-We tested the script using eight different turbidity levels.  The following videos illustrate the same animated object rendered under a selection of such levels (more specifically, 2, 4, 6, and 8):
+We tested the script using eight different turbidity levels.  The
+following videos illustrate the same animated object rendered under a
+selection of such levels (more specifically, 2, 4, 6, and 8):
 
 ~~~
 <video width="700" controls>
@@ -3073,8 +3408,15 @@ We tested the script using eight different turbidity levels.  The following vide
 ~~~
 
 The videos for the eight turbidity levels took, respectively,
-94m8.523s, 75m36.726s, 73m30.351s, 73m19.054s, 71m32.826s, 71m23.082s, 70m53.158s, and 70m28.809s.
-Using just one computing node would entail roughly 10 hours (more exactly, 600m52.529s) but, as we were spreading the different independent jobs among the four computing nodes that we could use, it took, at most, 2h50m (more exactly, 169m42.249s). This result could be improved if we could use more computing nodes as each video could have been generated in a different computing node, and the total computation would have take, at most, 1h34m (more exactly, 94m8.523s).
+94m8.523s, 75m36.726s, 73m30.351s, 73m19.054s, 71m32.826s, 71m23.082s,
+70m53.158s, and 70m28.809s.  Using just one computing node would
+entail roughly 10 hours (more exactly, 600m52.529s) but, as we were
+spreading the different independent jobs among the four computing
+nodes that we could use, it took, at most, 2h50m (more exactly,
+169m42.249s). This result could be improved if we could use more
+computing nodes as each video could have been generated in a different
+computing node, and the total computation would have take, at most,
+1h34m (more exactly, 94m8.523s).
 
 For a more architectonic example, here is a study on different materials applied to a building's façade:
 
@@ -3093,9 +3435,14 @@ For a more architectonic example, here is a study on different materials applied
 </video>
 ~~~
 
-The 360 frames in each of the three videos, in total, required 106 minutes to complete. However by using three different nodes, we could have divided this time, roughtly, by three.
+The 360 frames in each of the three videos, in total, required 106
+minutes to complete. However by using three different nodes, we could
+have divided this time, roughtly, by three.
 
-We also experimented with the renderings of glass in white or black backgrounds. To that end, we created the following Khepri program, which uses a ratio from 0.1 to 1.0 to affect the radius of each randomized sphere:
+We also experimented with the renderings of glass in white or black
+backgrounds. To that end, we created the following Khepri program,
+which uses a ratio from 0.1 to 1.0 to affect the radius of each
+randomized sphere:
 
 ```julia
 default_material(material_glass)
@@ -3112,7 +3459,8 @@ spheres_in_sphere(p, ri, re, rl, n) =
   end
 ```
 
-To generate the frames, we just iterate, increasing the ratio on each frame, while we also rotate the spheres:
+To generate the frames, we just iterate, increasing the ratio on each
+frame, while we also rotate the spheres:
 
 ```
 ground(-6, material(povray=>povray_definition(
@@ -3134,7 +3482,8 @@ for ϕ in division(0, 2π, 720)
 end
 ```
 
-Then just by changing the `rgb` color of the ground, we generate the two different backgrounds. The results are the following:
+Then just by changing the `rgb` color of the ground, we generate the
+two different backgrounds. The results are the following:
 
 ~~~
 <video width="700" controls>
@@ -3143,11 +3492,25 @@ Then just by changing the `rgb` color of the ground, we generate the two differe
 </video>
 ~~~
 
-The film with white background took 218m15.151s while the one with the black background took real	89m36.919s. This is one example where dividing the work among to computing nodes does not provide as much benefit as we would like because one of the videos takes much longer to produce than the other. Nevertheless, it still saves almost one and a half hour in a job that would take 5 hours to complete, a still significant 30% reduction.
+The film with white background took 218m15.151s while the one with the
+black background took real 89m36.919s. This is one example where
+dividing the work among to computing nodes does not provide as much
+benefit as we would like because one of the videos takes much longer
+to produce than the other. Nevertheless, it still saves almost one and
+a half hour in a job that would take 5 hours to complete, a still
+significant 30% reduction.
 
-Finally, given that the focus was architecture, we decided to repeat a series of videos that we did in the past, at a time where we spent weeks rendering images that, in some cases, would take one hour for each frame. Given the differences in the available software, it is not possible to exactly replicate the images, as the rendering engine is necessarily different. However, it can give a sense of the trade-offs between speed and image quality.
+Finally, given that the focus was architecture, we decided to repeat a
+series of videos that we did in the past, at a time where we spent
+weeks rendering images that, in some cases, would take one hour for
+each frame. Given the differences in the available software, it is not
+possible to exactly replicate the images, as the rendering engine is
+necessarily different. However, it can give a sense of the trade-offs
+between speed and image quality.
 
-The first video shows a parametric exploration of Astana's National Library (the video was 'filmed' at Full HD resolution but was reduced to half its size to facilitate viewing):
+The first video shows a parametric exploration of Astana's National
+Library (the video was 'filmed' at Full HD resolution but was reduced
+to half its size to facilitate viewing):
 
 ~~~
 <video width="700" controls>
@@ -3167,22 +3530,54 @@ For another example:
 
 ### Evolution
 
-We saw that supercomputers can have a dramatic effect on the time needed for rendering tasks.  By parallelizing the rendering of a single image through the multi-processing capabilities of a computing node and then parallelizing the rendering of multiple imagens through the use of multiple computing nodes, it becomes possible to achieve very large speedups.
+We saw that supercomputers can have a dramatic effect on the time
+needed for rendering tasks.  By parallelizing the rendering of a
+single image through the multi-processing capabilities of a computing
+node and then parallelizing the rendering of multiple imagens through
+the use of multiple computing nodes, it becomes possible to achieve
+very large speedups.
 
-At the same time, it is relevant to consider that even commodity hardware, nowadays, can efficiently run multiple threads in parallel. This means that the speedups obtained in the previous experiments must be contrasted not with the minimum computing power that the supercomputer can provide but, instead, with the current computing power that is available almost everywhere.  It is in this analysis that the results do not look as good as they seemed.  As a reference, using the maximum computing power available on one computing node, i.e., 96 execution threads, we managed to render the 1920x1024 image in an average of 110.3 seconds. For comparison, a 2017 AMD ThreadRipper 1950X workstation providing 16 cores/32 threads renders that same image in 615.5 seconds, which represents a speedup of only 5.6. For an even more depressing comparison, a 2015 Intel 4 cores/8 threads i7-6700K CPU that costs around 250 EUR can render the same image in 1946.4 seconds while doing other useful tasks at the same time. Although the supercomputer gives us a speedup of 17.6, just the CPU costs 18 times more. The ratio cost/performance seems to be, at best, constant.
+At the same time, it is relevant to consider that even commodity
+hardware, nowadays, can efficiently run multiple threads in
+parallel. This means that the speedups obtained in the previous
+experiments must be contrasted not with the minimum computing power
+that the supercomputer can provide but, instead, with the current
+computing power that is available almost everywhere.  It is in this
+analysis that the results do not look as good as they seemed.  As a
+reference, using the maximum computing power available on one
+computing node, i.e., 96 execution threads, we managed to render the
+1920x1024 image in an average of 110.3 seconds. For comparison, a 2017
+AMD ThreadRipper 1950X workstation providing 16 cores/32 threads
+renders that same image in 615.5 seconds, which represents a speedup
+of only 5.6. For an even more depressing comparison, a 2015 Intel 4
+cores/8 threads i7-6700K CPU that costs around 250 EUR can render the
+same image in 1946.4 seconds while doing other useful tasks at the
+same time. Although the supercomputer gives us a speedup of 17.6, just
+the CPU costs 18 times more. The ratio cost/performance seems to be,
+at best, constant.
 
-Despite the cost, the supercomputer does make the rendering task more feasible. We decided to test some additional examples that, in the past, were almost impractical.
-As a first example, in 2010, the following image, by Prateek Karandikar, took 16 hours and 19 seconds to render on an Intel Pentium 1.8GHz machine with 1GB RAM.
+Despite the cost, the supercomputer does make the rendering task more
+feasible. We decided to test some additional examples that, in the
+past, were almost impractical.  As a first example, in 2010, the
+following image, by Prateek Karandikar, took 16 hours and 19 seconds
+to render on an Intel Pentium 1.8GHz machine with 1GB RAM.
 
 \fig{/Photon}
 
-The supercomputer could generate the same image in 51 _seconds_, which is more than three orders of magnitude faster.
+The supercomputer could generate the same image in 51 _seconds_, which
+is more than three orders of magnitude faster.
 
-As another example, consider the classical POVRay Hall-of-Fame _Pebbles_ example, which is entirely procedurally generated:
+As another example, consider the classical POVRay Hall-of-Fame
+_Pebbles_ example, which is entirely procedurally generated:
 
 \fig{/pebbles}
 
-According to its author, this image took 4.5 days to render on an Athlon 5600+. We generated the exact same image on the supercomputer in 2h49m. This is a speedup of almost 40, which opens the door to other ideas. One was to use the exact same POVRay program do a short movie just by changing the camera. The result is not very smooth but it gives an idea of what becomes possible:
+According to its author, this image took 4.5 days to render on an
+Athlon 5600+. We generated the exact same image on the supercomputer
+in 2h49m. This is a speedup of almost 40, which opens the door to
+other ideas. One was to use the exact same POVRay program do a short
+movie just by changing the camera. The result is not very smooth but
+it gives an idea of what becomes possible:
 
 ~~~
 <img src="http://web.ist.utl.pt/antonio.menezes.leitao/ADA/SuperComputingFilms/PebblesZoomInOutFilm.gif" alt="">
@@ -3190,24 +3585,88 @@ According to its author, this image took 4.5 days to render on an Athlon 5600+. 
 
 ## Conclusions
 
-Despite the clear advantages of having very large computing resources available, there are some drawbacks to the use of those resources. The first is on the software side, as programs that require a graphical user interface can hardly run in a supercomputing environment. Even if the software does not have that particular requirement, it usually needs to be adapted to be able to run. Given the differences between operating systems, sometimes, this is a considerable obstacle. The lack of administrative privileges also makes it difficult to install software or even just the libraries needed to compile it.
+Despite the clear advantages of having very large computing resources
+available, there are some drawbacks to the use of those resources. The
+first is on the software side, as programs that require a graphical
+user interface can hardly run in a supercomputing environment. Even if
+the software does not have that particular requirement, it usually
+needs to be adapted to be able to run. Given the differences between
+operating systems, sometimes, this is a considerable obstacle. The
+lack of administrative privileges also makes it difficult to install
+software or even just the libraries needed to compile it.
 
-Not all software can benefit from the use of supercomputing resources. In fact, different tasks can have very different benefits from the use of those resources, including no benefits at all or even having disadvantages. Structural analysis, for example, could not benefit from the use of multiple CPUs (the software was not parallelized), while rendering benefited considerably (up to 65X speedup in some cases). Optimization using parallelized algorithms could benefit but only up to a point. We found that for the optimization problems we tested, there were considerable gains until we reach 8 CPUs but no gains after that. Another factor is the time it takes to launch the parallel tasks, which limits the amount of speedup that can be extracted.
+Not all software can benefit from the use of supercomputing
+resources. In fact, different tasks can have very different benefits
+from the use of those resources, including no benefits at all or even
+having disadvantages. Structural analysis, for example, could not
+benefit from the use of multiple CPUs (the software was not
+parallelized), while rendering benefited considerably (up to 65X
+speedup in some cases). Optimization using parallelized algorithms
+could benefit but only up to a point. We found that for the
+optimization problems we tested, there were considerable gains until
+we reach 8 CPUs but no gains after that. Another factor is the time it
+takes to launch the parallel tasks, which limits the amount of speedup
+that can be extracted.
 
-Given these limitations, it is important to plan the experiments in advance. For example, if the goal is to study the structural behavior of a building for different load cases, instead of hoping for the parallelization of the structural analysis package, we can instead parallelize the analysis of the different load cases. In the end, this approach gives the same results but it is much easier to implement, as it does not even require changing the software.
+Given these limitations, it is important to plan the experiments in
+advance. For example, if the goal is to study the structural behavior
+of a building for different load cases, instead of hoping for the
+parallelization of the structural analysis package, we can instead
+parallelize the analysis of the different load cases. In the end, this
+approach gives the same results but it is much easier to implement, as
+it does not even require changing the software.
 
 ### Lessons Learned
 
-1. Use a different job name for each experiment. Slurm has a great accounting system that gives a lot of information about everything we do but it then becomes critical to be able to distinguish between different experiments.
-2. Don't request more resources than the ones you really need. Slurm might be able to process your job sooner by using the capacity that is still available on a computing node that is running other jobs. However, if the nodes do not have enough free capacity to satisfy the requested resources the job will remain waiting until that capacity arrives.
-3. Resources include not only the number of nodes/tasks/cpus needed but also the expected time. Obviously, it should be enough to complete the job or it will be automatically cancelled when the time is over. This can be _very_ annoying when a job is cancelled just before finishing what it was doing for two or three days.
+1. Use a different job name for each experiment. Slurm has a great
+accounting system that gives a lot of information about everything we
+do but it then becomes critical to be able to distinguish between
+different experiments.
+
+2. Don't request more resources than the ones you really need. Slurm
+might be able to process your job sooner by using the capacity that is
+still available on a computing node that is running other
+jobs. However, if the nodes do not have enough free capacity to
+satisfy the requested resources the job will remain waiting until that
+capacity arrives.
+
+3. Resources include not only the number of nodes/tasks/cpus needed
+but also the expected time. Obviously, it should be enough to complete
+the job or it will be automatically cancelled when the time is
+over. This can be _very_ annoying when a job is cancelled just before
+finishing what it was doing for two or three days.
 
 ### Future Work
 
-This research is a starting point for the use of supercomputing resources to address architecture problems, leaving a large number of paths that deserve to be explored.
+This research is a starting point for the use of supercomputing
+resources to address architecture problems, leaving a large number of
+paths that deserve to be explored.
 
-One important one is to find ways to better accommodate design exploration to the supercomputing environment. We envision the possibility of pre-computing a sample of the design space in a supercomputer, where each element of the sample corresponds to a single task. Depending on the number of dimensions and the number of values considered on each dimension, this might require as few as a few dozens of CPUs, or as many as a many thousands.
+One important one is to find ways to better accommodate design
+exploration to the supercomputing environment. We envision the
+possibility of pre-computing a sample of the design space in a
+supercomputer, where each element of the sample corresponds to a
+single task. Depending on the number of dimensions and the number of
+values considered on each dimension, this might require as few as a
+few dozens of CPUs, or as many as a many thousands.
 
-Another relevant research path is the parallelization of optimization processes. We found large limitations on the speedups that the tested algorithms could achieve and, thus, it is important to experiment other algorithms. Depending on the available computing resources, a less intelligent algorithm that makes better use of parallel computation can beat a more intelligent algorithm that is hardly parallelizable.
+Another relevant research path is the parallelization of optimization
+processes. We found large limitations on the speedups that the tested
+algorithms could achieve and, thus, it is important to experiment
+other algorithms. Depending on the available computing resources, a
+less intelligent algorithm that makes better use of parallel
+computation can beat a more intelligent algorithm that is hardly
+parallelizable.
 
-A further research path is the automatic management of the supercomputing resources. To make them useful for less computer-savvy users, as is typical in architecture, it is necessary to considerably simplify their use.  For example, we found that to better explore the available computing resources at each moment, we had to first check the current load on the computing nodes and then launch jobs that requested only the remaining computing resources. Another problem is the painful management of files that need to be exchanged between the user's machine and the supercomputer. We plan to find ways to eliminate these problems, e.g., through graphical user interfaces and automatic file synchronization, making the use of supercomputing resources as simple as a regular computer.
+A further research path is the automatic management of the
+supercomputing resources. To make them useful for less computer-savvy
+users, as is typical in architecture, it is necessary to considerably
+simplify their use.  For example, we found that to better explore the
+available computing resources at each moment, we had to first check
+the current load on the computing nodes and then launch jobs that
+requested only the remaining computing resources. Another problem is
+the painful management of files that need to be exchanged between the
+user's machine and the supercomputer. We plan to find ways to
+eliminate these problems, e.g., through graphical user interfaces and
+automatic file synchronization, making the use of supercomputing
+resources as simple as a regular computer.
