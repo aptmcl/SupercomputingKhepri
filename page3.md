@@ -36,7 +36,7 @@ performance, we focused on the maximum displacement of the structure's
 elements.
 
 Khepri supports two different structural analysis backends, namely
-KhepriRobot that connects to AutoDesk's Robot and KhepriFrame3DD,
+KhepriRobot that connects to Autodesk's Robot and KhepriFrame3DD,
 which directly accesses a DLL that wraps Frame3DD, static and dynamic
 structural analysis package for 2D and 3D frames, developed by
 Prof. Henri P. Gavin of the Department of Civil and Environmental

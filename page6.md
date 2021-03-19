@@ -59,7 +59,7 @@ it does not even require changing the software.
 
 ### Lessons Learned
 
-1. Use a different job name for each experiment. Slurm has a great accounting system that gives a lot of information about everything we do but it then becomes critical to distinguish between different experiments.  Repeating the job names makes it more difficult to do that distinction.
+1. Use a different job name for each experiment. Slurm has a great accounting system that gives a lot of information about everything we do but it then becomes critical to distinguish between different experiments.  Repeating the job names makes it more difficult to make that distinction.
 
 2. Do not request more resources than the ones you really need. Slurm might be able to process your job sooner by using the capacity that is still available on a computing node that is running other jobs. However, if the nodes do not have enough free capacity to satisfy the requested resources, the job will remain waiting until that capacity arrives.
 

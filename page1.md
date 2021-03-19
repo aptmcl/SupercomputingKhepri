@@ -260,6 +260,6 @@ start collecting statistics of their execution using a different
 number of processing units.
 
 #
-[<< Introduction](/index/)
+[<< Previous Chapter](/)
 
 [Next Chapter >>](/page2/)

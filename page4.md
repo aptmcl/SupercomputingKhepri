@@ -28,7 +28,7 @@ parallelized. More specifically, the case study was the optimization
 of the structural properties of the previous truss, measured by the
 maximum displacement of all its nodes. The variable vector to optimize
 is the location of the truss' center, i.e., the point at the top where
-all truss legs join.
+all truss arcs join.
 
 We started by considering only the X and Y coordinates of the truss'
 center, fixing its height. This means we have two variables
@@ -1332,11 +1332,11 @@ optimization as the number of CPUs increases, we selected optimization
 algorithms that we knew were already parallelized. A suitable
 candidade is BlackBoxOptim, a parallelized optimization package
 supporting both multi- and single-objective optimization problems
-using meta-heuristics algorithms.
+using metaheuristics algorithms.
 
 BlackBoxOptim supports both multi-threaded and parallel execution,
 allowing the optimization algorithm to evaluate many candidate
-solutions at the same time. Given that Khepri is not yet thread-safe,
+solutions at the same time. Since Khepri is not yet thread-safe,
 we opted for parallel evaluation using multiple independent processes.
 Following the BlackBoxOptim guidelines, we used the following
 template:
@@ -1363,9 +1363,9 @@ println("Solution candidate:", best_candidate(res))
 println("Solution fitness:", best_fitness(res))
 ```
 
-Given that the master process is responsible for running the
+Note that the master process is responsible for running the
 optimization algorithm and the workers are only responsible for
-evaluating candidate solutions, we fixed the seed of the master's
+evaluating candidate solutions. Therefore, we fixed the seed of the master's
 random number generator so that we could repeat the experiments with a
 different number of workers but without changing the sequence of steps
 taken. This ensures that the optimization always finds the same
@@ -1547,8 +1547,8 @@ seems not to scale beyond eight processes.
 The next experiment was to increase the dimensionality of the design
 space, by increasing the independent variables from two to three. Now,
 besides the $X$ and $Y$ coordinates of the central node of the truss, we
-also optimized its $Z$ coordinate, allowing it to vary between 1 and
-20. We also decided to experiment running the process using just one
+also optimized its $Z$ coordinate, allowing it to vary between 1 and 20.
+We also decided to experiment running the process using just one
 thread, to better understand the advantages of parallelization. Fixing
 the maximum number of evaluations at 2000, we obtained the following
 results:
