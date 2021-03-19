@@ -11,7 +11,8 @@
 }
 
 #menu ul {
-  text-align: center;
+  /* text-align: center; */
+  text-align: right;
   margin: 0;
   padding: 0;
 }
@@ -77,7 +78,8 @@
   #menu {
     margin-top: 100px;
     float: left;
-    width: 100px;
+    /* width: 100px; */
+    width: 185px;
     text-align: right;
   }
   .franklin-content { width: 600px; }

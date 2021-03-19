@@ -3,8 +3,8 @@ Add here global page variables to use throughout your
 website.
 The website_* must be defined for the RSS to work
 -->
-@def website_title = "Super-Computing for Architecture"
-@def website_descr = "Experiments on the use of super-computing in Architecture"
+@def website_title = "Supercomputing for Architecture"
+@def website_descr = "Experiments on the use of supercomputing in Architecture"
 @def website_url   = "https://algorithmicdesign.github.io/"
 @def prepath = "SupercomputingKhepri"
 @def author = "António Menezes Leitão"
