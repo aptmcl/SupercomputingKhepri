@@ -65,11 +65,23 @@ Our first experiment was to test a vertical load of increasing
 magnitude being applied to all non-supported truss nodes. The
 load started at zero and went up to 100 N. For each load case, the
 structure was analyzed by KhepriFrame3DD and the computed truss node
-displacements were used to show the shape of the truss under load. To
-make the displacement more obvious, we applied a factor of 100. This
+displacements were used to show the shape of the truss under load. Note
+that these displacements tend to be miniscule when compared with the
+size of the structure. This means that its visualization tend to be
+difficult unless we amplify them. The following movie illustrates the
+truss behavior under increasing load but where we amplified the displacements
+by a factor of ten:
+
+~~~
+<video width="700" controls>
+  <source src="http://web.ist.utl.pt/antonio.menezes.leitao/ADA/SuperComputingFilms/VDomeTrussRibsDeform.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+~~~
+
+Nota that even with factor of scale of ten, the displacement seems still small, which makes comparisons difficult.  To make the displacement more obvious, we then applied a factor of 100. This
 means that the actual truss deformation is one hundred times smaller
-than what is illustrated. The following movie shows the truss behavior
-under increasing load:
+than what is illustrated:
 
 ~~~
 <video width="700" controls>
