@@ -1,6 +1,5 @@
 # This file was generated, do not modify it. # hide
 #hideall
-using JSON
 approx_pi_single = bench_data("""
 Iterations   Time          AbsoluteError
 10           0.000008      0.3415926535897933
