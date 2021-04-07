@@ -1,5 +1,6 @@
 # This file was generated, do not modify it. # hide
 #hideall
+using Franklin
 using DataFrames
 using CSV
 using Plots

@@ -1,11 +1,12 @@
 # This file was generated, do not modify it. # hide
 #hideall
+using Franklin
 using DataFrames
 using CSV
 using Plots
 using StatsPlots
-using Statistics
 using JSON
+using Statistics: mean
 
 plotlyjs(size=(640,330))
 

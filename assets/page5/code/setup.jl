@@ -6,6 +6,7 @@ using CSV
 using Plots
 using StatsPlots
 using JSON
+using Statistics: mean
 
 plotlyjs(size=(640,330))
 
