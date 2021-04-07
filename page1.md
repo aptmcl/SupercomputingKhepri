@@ -2,6 +2,7 @@
 
 ```julia:setup
 #hideall
+using Franklin
 using DataFrames
 using CSV
 using Plots

@@ -17,6 +17,16 @@ bench_data(str) =
 saveplot(plt, name="", ext="svg") =
   fdplotly(json(Plots.plotlyjs_syncplot(plt))) # hide
   #savefig(joinpath(@OUTPUT, name * "." * ext))
+
+function JSON.Writer.show_json(io::JSON.Writer.SC, s::JSON.Writer.CS, x::Union{AbstractVector, Tuple})
+    JSON.Writer.begin_array(io)
+    for i in eachindex(x)
+        if x isa Tuple || isassigned(x, i)
+          JSON.Writer.show_element(io, s, x[i])
+      end
+    end
+    JSON.Writer.end_array(io)
+end
 ```
 
 # Julia for Parallel Processing

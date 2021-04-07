@@ -2,12 +2,13 @@
 
 ```julia:setup
 #hideall
+using Franklin
 using DataFrames
 using CSV
 using Plots
 using StatsPlots
-using Statistics
 using JSON
+using Statistics: mean
 
 plotlyjs(size=(640,330))
 
@@ -1437,7 +1438,7 @@ time2seconds(s) =
   let m = match(r"(.+)m(.+)s", s)
     parse(Float64, m.captures[1])*60+parse(Float64, m.captures[2])
   end
- 
+
 plot_opt(raw_data) =
   let data = sort(combine(groupby(raw_data, :Processes),
                           :RealTime => it->mean(map(time2seconds, it))),
