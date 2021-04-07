@@ -2,11 +2,11 @@
 
 ```julia:setup
 #hideall
+using Franklin
 using DataFrames
 using CSV
 using Plots
 using StatsPlots
-using Statistics
 using JSON
 
 plotlyjs(size=(640,330))
@@ -159,7 +159,7 @@ different, as the one at the bottom has two independent bar connecting
 alternating nodes, while the top one has one extra node on the
 crossing between bars, effectively making them four independent bars
 connected at that extra node. This has a considerable effect on the
-truss' structural behavior as it makes it hinders its resistance to
+truss' structural behavior as it hinders its resistance to
 compressive forces.
 
 The behavior of the different truss topologies is illustrated in the

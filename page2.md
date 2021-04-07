@@ -2,11 +2,11 @@
 
 ```julia:setup
 #hideall
+using Franklin
 using DataFrames
 using CSV
 using Plots
 using StatsPlots
-using Statistics
 using JSON
 
 plotlyjs(size=(640,330))
@@ -110,7 +110,6 @@ The benchmark results are the following:
 
 ```julia:plot1
 #hideall
-using JSON
 approx_pi_single = bench_data("""
 Iterations   Time          AbsoluteError
 10           0.000008      0.3415926535897933

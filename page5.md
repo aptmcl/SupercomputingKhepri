@@ -2,11 +2,11 @@
 
 ```julia:setup
 #hideall
+using Franklin
 using DataFrames
 using CSV
 using Plots
 using StatsPlots
-using Statistics
 using JSON
 
 plotlyjs(size=(640,330))
