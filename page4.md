@@ -2,22 +2,7 @@
 
 ```julia:setup
 #hideall
-using Franklin
-using DataFrames
-using CSV
-using Plots
-using StatsPlots
-using JSON
-using Statistics: mean
-
-plotlyjs(size=(640,330))
-
-bench_data(str) =
-  DataFrame(CSV.File(IOBuffer(str), delim=" ", ignorerepeated=true))
-
-saveplot(plt, name="", ext="svg") =
-  fdplotly(json(Plots.plotlyjs_syncplot(plt))) # hide
-  #savefig(joinpath(@OUTPUT, name * "." * ext))
+include("utils.jl")
 ```
 
 # Optimization
@@ -1443,11 +1428,12 @@ plot_opt(raw_data) =
   let data = sort(combine(groupby(raw_data, :Processes),
                           :RealTime => it->mean(map(time2seconds, it))),
                   :Processes)
-    bar(string.(data[:,1]),
+    plot(string.(data[:,1]),
          data[:,2],
          legend=:none,
          markers=:auto,
          #ylimits=(0,180),
+         seriestype=:bar,
          xlabel="Processes",
          #color=:green,
          #xscale=:log10,

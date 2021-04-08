@@ -2,31 +2,7 @@
 
 ```julia:setup
 #hideall
-using Franklin
-using DataFrames
-using CSV
-using Plots
-using StatsPlots
-using JSON
-
-plotlyjs(size=(640,330))
-
-bench_data(str) =
-  DataFrame(CSV.File(IOBuffer(str), delim=" ", ignorerepeated=true))
-
-saveplot(plt, name="", ext="svg") =
-  fdplotly(json(Plots.plotlyjs_syncplot(plt))) # hide
-  #savefig(joinpath(@OUTPUT, name * "." * ext))
-
-function JSON.Writer.show_json(io::JSON.Writer.SC, s::JSON.Writer.CS, x::Union{AbstractVector, Tuple})
-    JSON.Writer.begin_array(io)
-    for i in eachindex(x)
-        if x isa Tuple || isassigned(x, i)
-          JSON.Writer.show_element(io, s, x[i])
-      end
-    end
-    JSON.Writer.end_array(io)
-end
+include("utils.jl")
 ```
 
 # Julia for Parallel Processing
@@ -477,8 +453,6 @@ plot(time_aprox_pi_multiple[:,1],
      ylimits=(0,180),
      xlabel="Processes",
      xticks=time_aprox_pi_multiple[:,1],
-     #color=:green,
-     #xscale=:log10,
      ylabel="Time (s)")
 saveplot(plt,"userTimeParallelPi")
 ```
@@ -910,7 +884,7 @@ plot(
   work_per_id[1][:,2],
   xlimits=(2,96),
   #xticks=work_per_id[1][:,1],
-  seriestype = :bar,
+  seriestype=:bar,
   legend=:none,
   xlabel="Process id",
   ylabel="Work Units")
@@ -931,7 +905,7 @@ plot(
   work_per_id[5][:,2],
   xlimits=(2,32),
   #xticks=work_per_id[5][:,1],
-  seriestype = :bar,
+  seriestype=:bar,
   legend=:none,
   xlabel="Process id",
   ylabel="Work Units")
@@ -950,7 +924,7 @@ plot(
   work_per_id[8][:,2],
   #xlimits=(2,4),
   xticks=[2,3,4], #work_per_id[8][:,1],
-  seriestype = :bar,
+  seriestype=:bar,
   legend=:none,
   xlabel="Process id",
   ylabel="Work Units")
@@ -972,12 +946,9 @@ groupedbar(
   string.([2, 4, 8, 16, 32, 48, 64, 80, 96]),
   hcat(map(w->resize(collect(w[:,2]), 95), reverse(work_per_id))...)',
   bar_position=:stack,
-  #size=(700,1000),
   legend=:none,
-  #xlabels=,
   xlabel="# Processes",
-  ylabel="Work Units"
-  )
+  ylabel="Work Units")
 saveplot(plt,"workPerId")
 ```
 \textoutput{plot7}
@@ -992,6 +963,7 @@ confirms our previous hypothesis regarding the time spent managing the
 workers _vs_ the time doing actual work. Here we measured the time
 needed to launch the workers (the `addprocs` operation) and the total
 time needed to process all work items.
+
 
 ```julia:plot8
 #hideall
