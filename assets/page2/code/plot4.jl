@@ -21,7 +21,5 @@ plot(time_aprox_pi_multiple[:,1],
      ylimits=(0,180),
      xlabel="Processes",
      xticks=time_aprox_pi_multiple[:,1],
-     #color=:green,
-     #xscale=:log10,
      ylabel="Time (s)")
 saveplot(plt,"userTimeParallelPi")

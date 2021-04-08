@@ -42,11 +42,12 @@ plot_opt(raw_data) =
   let data = sort(combine(groupby(raw_data, :Processes),
                           :RealTime => it->mean(map(time2seconds, it))),
                   :Processes)
-    bar(string.(data[:,1]),
+    plot(string.(data[:,1]),
          data[:,2],
          legend=:none,
          markers=:auto,
          #ylimits=(0,180),
+         seriestype=:bar,
          xlabel="Processes",
          #color=:green,
          #xscale=:log10,

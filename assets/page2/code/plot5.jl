@@ -366,7 +366,7 @@ plot(
   work_per_id[1][:,2],
   xlimits=(2,96),
   #xticks=work_per_id[1][:,1],
-  seriestype = :bar,
+  seriestype=:bar,
   legend=:none,
   xlabel="Process id",
   ylabel="Work Units")
