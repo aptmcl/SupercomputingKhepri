@@ -1,6 +1,6 @@
 # This file was generated, do not modify it. # hide
 #hideall
-resize(v, n) = vcat(v, zeros(Int, n - length(v)))
+using .MOOBData
 plt=
 groupedbar(
   string.([2, 4, 8, 16, 32, 48, 64, 80, 96]),
@@ -9,4 +9,5 @@ groupedbar(
   legend=:none,
   xlabel="# Processes",
   ylabel="Work Units")
-saveplot(plt,"workPerId")
+saveplot(plt,"workPerIdDivided")
+#\textoutput{plot7}

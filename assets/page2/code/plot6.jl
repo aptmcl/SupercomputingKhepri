@@ -1,5 +1,6 @@
 # This file was generated, do not modify it. # hide
 #hideall
+using .MOOBData
 plt=
 plot(
   work_per_id[5][:,1],
@@ -11,3 +12,4 @@ plot(
   xlabel="Process id",
   ylabel="Work Units")
 saveplot(plt,"workPerId32")
+#\textoutput{plot6}

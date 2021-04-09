@@ -8,19 +8,9 @@ function hfun_m1fill(vname)
   return pagevar("index", var)
 end
 
-using Plots
-using CSV
-using DataFrames
-using JSON
-using Franklin
-using Statistics: mean
-using StatsPlots
-
-plotlyjs(size=(640,330))
-
-bench_data(str) =
-  DataFrame(CSV.File(IOBuffer(str), delim=" ", ignorerepeated=true))
-
-saveplot(plt, name="", ext="svg") =
-  fdplotly(json(Plots.plotlyjs_syncplot(plt))) # hide
-  #savefig(joinpath(@OUTPUT, name * "." * ext))
+function lx_baz(com, _)
+  # keep this first line
+  brace_content = Franklin.content(com.braces[1]) # input string
+  # do whatever you want here
+  return uppercase(brace_content)
+end
