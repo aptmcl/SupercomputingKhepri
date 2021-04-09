@@ -2,7 +2,7 @@
 
 ```julia:setup
 #hideall
-include("utils.jl")
+include("MOOBData.jl")
 ```
 
 # Rendering
@@ -58,64 +58,12 @@ time spent for different numbers of threads is the following:
 
 ```julia:plot10
 #hideall
-povray_1024x768 = bench_data("""
-RadiosityTime RadiosityThreads RadiosityTotal TraceTime TraceThreads TraceTotal RealTime UserTime SysTime
-0.818 3 2.368 31.231 64 1941.229 0m36.337s 32m25.434s 0m0.635s
-0.819 3 2.361 25.443 96 2107.544 0m30.455s 35m11.783s 0m0.637s
-0.819 3 2.366 26.189 80 2017.256 0m31.304s 33m41.534s 0m0.597s
-0.821 3 2.363 39.692 48 1840.427 0m44.731s 30m44.612s 0m0.600s
-0.819 3 2.366 56.095 32 1774.080 1m1.169s 29m38.282s 0m0.568s
-0.814 3 2.353 108.455 16 1729.514 1m53.464s 28m53.648s 0m0.626s
-0.817 3 2.361 208.080 8 1659.078 3m33.054s 27m43.235s 0m0.624s
-0.814 3 2.346 352.963 4 1410.929 5m57.999s 23m35.000s 0m0.666s
-0.817 3 2.347 611.214 2 1221.676 10m16.227s 20m25.473s 0m0.964s
-1.574 2 2.370 1207.878 1 1207.088 20m13.614s 20m11.462s 0m0.559s
-1.572 2 2.370 1207.309 1 1206.513 20m13.098s 20m10.883s 0m0.571s
-0.816 3 2.348 620.177 2 1239.598 10m25.139s 20m43.725s 0m0.642s
-0.816 3 2.356 25.325 96 2126.921 0m30.392s 35m31.212s 0m0.591s
-0.814 3 2.357 26.340 80 2027.735 0m31.387s 33m51.958s 0m0.585s
-0.814 3 2.359 40.328 48 1872.833 0m45.326s 31m16.967s 0m0.659s
-0.817 3 2.362 57.289 32 1816.192 1m2.315s 30m20.225s 0m0.734s
-0.816 3 2.360 108.502 16 1729.631 1m53.534s 28m53.794s 0m0.599s
-0.818 3 2.361 206.353 8 1648.052 3m31.356s 27m32.014s 0m0.749s
-0.817 3 2.366 354.500 4 1417.245 5m59.522s 23m41.345s 0m0.618s
-0.817 3 2.356 631.685 2 1262.454 10m36.675s 21m6.617s 0m0.757s
-1.585 2 2.386 1226.822 1 1226.094 20m32.506s 20m30.473s 0m0.689s
-0.816 3 2.354 647.005 2 1292.969 10m52.032s 21m36.416s 0m1.615s
-0.813 3 2.350 370.097 4 1477.886 6m15.140s 24m41.825s 0m0.839s
-0.816 3 2.357 212.190 8 1659.878 3m37.163s 27m44.064s 0m0.542s
-0.820 3 2.372 113.396 16 1696.150 1m58.451s 28m20.363s 0m0.513s
-0.824 3 2.371 56.236 32 1783.993 1m1.228s 29m48.213s 0m0.524s
-0.816 3 2.363 32.138 64 1913.001 0m37.261s 31m57.256s 0m0.566s
-0.814 3 2.357 26.156 80 2017.308 0m31.211s 33m41.559s 0m0.604s
-0.823 3 2.373 25.497 96 2102.918 0m30.530s 35m7.262s 0m0.588s
-""")
-
-time2seconds(s) =
-  let m = match(r"(.+)m(.+)s", s)
-    parse(Float64, m.captures[1])*60+parse(Float64, m.captures[2])
-  end
-
-plot_povray(raw_data) =
-  let data = sort(combine(groupby(raw_data, :TraceThreads),
-                          :RealTime => it->mean(map(time2seconds, it))),
-                  :TraceThreads)
-    plot(data[:,1],
-         data[:,2],
-         xticks=data[:,1],
-         legend=:none,
-         markers=:auto,
-         #ylimits=(0,180),
-         xlabel="Threads",
-         #color=:green,
-         #xscale=:log10,
-         ylabel="Time (s)")
-  end
-
+using .MOOBData
 plt = plot_povray(povray_1024x768)
 saveplot(plt,"POVRay1024x768")
+#\textoutput{plot10}
 ```
-\textoutput{plot10}
+\fig{POVRay1024x768}
 
 To have another data point, we then decided to change the point of
 view, while also increasing the size of the image from the previous
@@ -128,44 +76,12 @@ Again, we took the average of three different runs. The result is the following:
 
 ```julia:plot11
 #hideall
-povray_1920x1024 = bench_data("""
-RadiosityTime RadiosityThreads RadiosityTotal TraceTime TraceThreads TraceTotal RealTime UserTime SysTime
-0.779 3 2.001 102.021 96 9619.841 1m47.700s 160m24.887s 0m0.904s
-0.762 3 1.985 118.116 80 9315.123 2m3.798s 155m20.004s 0m1.037s
-0.789 3 2.017 137.704 64 8669.172 2m23.322s 144m33.953s 0m1.112s
-0.778 3 1.996 255.177 32 8125.378 4m20.778s 135m30.414s 0m0.919s
-0.768 3 1.991 176.663 48 8405.420 3m2.357s 140m10.271s 0m1.085s
-0.764 3 1.972 514.804 16 8222.332 8m40.465s 137m7.376s 0m1.434s
-0.779 3 1.996 778.487 8 6225.444 13m4.098s 103m50.300s 0m1.224s
-0.764 3 1.972 1407.864 4 5628.796 23m33.505s 93m51.447s 0m3.593s
-0.774 3 1.988 2808.148 2 5612.965 46m53.850s 93m38.552s 0m1.956s
-1.372 2 2.001 5324.891 1 5321.549 88m51.048s 88m46.425s 0m3.231s
-1.367 2 1.993 8705.511 1 8696.566 145m11.838s 145m3.143s 0m7.101s
-0.778 3 1.996 3454.576 2 6902.697 57m40.354s 115m7.432s 0m5.056s
-0.772 3 1.985 1500.587 4 5999.998 25m6.543s 100m5.298s 0m1.310s
-0.779 3 1.993 955.979 8 7643.130 16m1.935s 127m28.370s 0m1.753s
-0.777 3 2.007 521.439 16 8326.534 8m47.077s 138m51.595s 0m1.320s
-0.779 3 1.999 272.784 32 8679.197 4m38.447s 144m41.701s 0m3.616s
-0.777 3 1.995 175.634 48 8307.712 3m1.251s 138m32.662s 0m0.889s
-0.782 3 2.001 142.765 64 8820.308 2m28.449s 147m5.241s 0m0.977s
-0.772 3 1.983 120.288 80 9283.625 2m6.013s 154m48.632s 0m0.897s
-0.787 3 2.024 105.754 96 9971.934 1m51.491s 166m17.003s 0m0.862s
-1.515 2 2.194 7426.595 1 7418.852 123m52.975s 123m46.059s 0m4.959s
-0.773 3 1.986 2886.633 2 5768.779 48m12.169s 96m14.905s 0m2.498s
-0.774 3 1.986 1604.454 4 6408.280 26m49.993s 106m53.697s 0m1.581s
-0.778 3 1.999 819.846 8 6550.907 13m45.409s 109m16.001s 0m1.120s
-0.771 3 1.982 487.128 16 7772.255 8m12.680s 129m37.101s 0m1.092s
-0.796 3 2.032 252.587 32 8035.035 4m18.244s 134m0.110s 0m0.851s
-0.785 3 2.008 181.167 48 8443.545 3m6.722s 140m48.535s 0m0.895s
-0.765 3 1.982 145.240 64 9035.470 2m30.855s 150m40.471s 0m0.908s
-0.775 3 1.992 136.878 80 9359.387 2m22.592s 156m4.452s 0m0.878s
-0.788 3 2.024 106.134 96 10010.192 1m51.786s 166m55.312s 0m0.851s
-""")
-
+using .MOOBData
 plt = plot_povray(povray_1920x1024)
 saveplot(plt,"POVRay1920x1024")
+#\textoutput{plot11}
 ```
-\textoutput{plot11}
+\fig{POVRay1920x1024}
 
 Note that there are relevant speedups up to the upper limit of
 threads. Although it pales in comparison to the initial gains, from 80
@@ -177,34 +93,12 @@ we should use.
 
 ```julia:plot12
 #hideall
-plot_povray_speedup(raw_data1, raw_data2) =
-  let process_data(raw_data) =
-            sort(combine(groupby(raw_data, :TraceThreads),
-                         :RealTime => it->mean(map(time2seconds, it))),
-                 :TraceThreads),
-      data1 = process_data(raw_data1),
-      data2 = process_data(raw_data2)
-    plot(data1[:,1],
-         [map(x->data1[1,2]/x, data1[:,2]) map(x->data2[1,2]/x, data2[:,2])],
-         xticks=data1[:,1],
-         label=["1024x768" "1920x1024"],
-         legend=:topleft,
-         markers=:auto,
-         #ylimits=(0,180),
-         xlabel="Threads",
-         #color=:green,
-         #xscale=:log10,
-         ylabel="Time (s)")
-  end
-
-average96 =
-  combine(filter(:TraceThreads => x->x==96, povray_1920x1024),
-          :RealTime => it->mean(map(time2seconds, it)))
-
+using .MOOBData
 plt = plot_povray_speedup(povray_1024x768, povray_1920x1024)
 saveplot(plt,"POVRay1024x768vs1920x1024")
+#\textoutput{plot12}
 ```
-\textoutput{plot12}
+\fig{POVRay1024x768vs1920x1024}
 
 As is visible, for the small rendering task, it only pays off to use
 up to 80 threads, for an almost 40X speedup compared to just one

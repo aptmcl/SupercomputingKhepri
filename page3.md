@@ -1,10 +1,5 @@
 @def title = "Design Exploration"
 
-```julia:setup
-#hideall
-include("utils.jl")
-```
-
 # Design Exploration
 
 Design space exploration is one of the simplest applications of
